@@ -26,6 +26,7 @@ interface CommentLayerProps {
 export function CommentLayer({ meta, designer, slug, children }: CommentLayerProps) {
   const [commentMode, setCommentMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [pendingPin, setPendingPin] = useState<{ x: number; y: number } | null>(null);
   const [pendingText, setPendingText] = useState("");
@@ -38,6 +39,13 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
       .then((data) => { if (Array.isArray(data)) setComments(data); })
       .catch(() => {});
   }, [designer, slug]);
+
+  const copyUrl = () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   const toggleCommentMode = () => {
     setCommentMode((m) => {
@@ -151,6 +159,14 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
             <Icon name="plus" size={14} />
             <span>New project</span>
           </Link>
+          {/* Copy URL */}
+          <button
+            onClick={copyUrl}
+            className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium bg-bg-secondary text-text-secondary border border-border hover:bg-bg-tertiary hover:text-text-primary transition-colors"
+          >
+            <Icon name={copied ? "check" : "link"} size={14} />
+            <span>{copied ? "Copied!" : "Copy URL"}</span>
+          </button>
           <div className="h-4 w-px bg-border mx-1" />
           {/* Comment mode toggle */}
           <button
