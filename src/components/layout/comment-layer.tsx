@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, type KeyboardEvent } from "react";
+import { useState, useEffect, useRef, type KeyboardEvent } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
@@ -32,28 +32,12 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const storageKey = `prototype-comments-${designer}-${slug}`;
-
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored) setComments(JSON.parse(stored));
-    } catch {
-      // ignore
-    }
-  }, [storageKey]);
-
-  const persist = useCallback(
-    (next: Comment[]) => {
-      setComments(next);
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(next));
-      } catch {
-        // ignore
-      }
-    },
-    [storageKey]
-  );
+    fetch(`/api/comments?designer=${encodeURIComponent(designer)}&slug=${encodeURIComponent(slug)}`)
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data)) setComments(data); })
+      .catch(() => {});
+  }, [designer, slug]);
 
   const toggleCommentMode = () => {
     setCommentMode((m) => {
@@ -81,7 +65,7 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
 
   const submitComment = () => {
     if (!pendingPin || !pendingText.trim()) return;
-    const next: Comment = {
+    const comment: Comment = {
       id: crypto.randomUUID(),
       x: pendingPin.x,
       y: pendingPin.y,
@@ -89,9 +73,14 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
       createdAt: new Date().toISOString(),
       resolved: false,
     };
-    persist([...comments, next]);
+    setComments((prev) => [...prev, comment]);
     setPendingPin(null);
     setPendingText("");
+    fetch("/api/comments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ designer, slug, comment }),
+    }).catch(() => {});
   };
 
   const cancelPending = () => {
@@ -100,13 +89,23 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
   };
 
   const resolveComment = (id: string) => {
-    persist(comments.map((c) => (c.id === id ? { ...c, resolved: !c.resolved } : c)));
+    setComments((prev) => prev.map((c) => (c.id === id ? { ...c, resolved: !c.resolved } : c)));
     if (activeCommentId === id) setActiveCommentId(null);
+    fetch("/api/comments", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ designer, slug, id }),
+    }).catch(() => {});
   };
 
   const deleteComment = (id: string) => {
-    persist(comments.filter((c) => c.id !== id));
+    setComments((prev) => prev.filter((c) => c.id !== id));
     if (activeCommentId === id) setActiveCommentId(null);
+    fetch("/api/comments", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ designer, slug, id }),
+    }).catch(() => {});
   };
 
   const unresolvedCount = comments.filter((c) => !c.resolved).length;
