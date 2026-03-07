@@ -17,12 +17,14 @@ export default async function HomePage() {
             inspired.
           </p>
         </div>
-        <Link
-          href="/prototypes/claude-bot/create-new-project"
-          className="shrink-0 mt-1 flex items-center gap-1.5 px-4 h-9 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors"
-        >
-          + New project
-        </Link>
+        {process.env.NODE_ENV === "development" && (
+          <Link
+            href="/prototypes/claude-bot/create-new-project"
+            className="shrink-0 mt-1 flex items-center gap-1.5 px-4 h-9 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors"
+          >
+            + New project
+          </Link>
+        )}
       </header>
 
       <div className="space-y-12">
