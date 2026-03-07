@@ -1,0 +1,116 @@
+name: Sync Notion Feature Requests
+
+on:
+  schedule:
+    - cron: "0 */4 * * *"
+  workflow_dispatch:
+
+jobs:
+  sync-features:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Query Notion for Ready features
+        id: notion-query
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+        run: |
+          RESPONSE=$(curl -s -X POST \
+            "https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}/query" \
+            -H "Authorization: Bearer ${NOTION_API_KEY}" \
+            -H "Notion-Version: 2022-06-28" \
+            -H "Content-Type: application/json" \
+            --data '{
+              "filter": {
+                "and": [
+                  {
+                    "property": "State",
+                    "status": {
+                      "equals": "Ready"
+                    }
+                  },
+                  {
+                    "property": "Project",
+                    "multi_select": {
+                      "contains": "Prototype Playground"
+                    }
+                  }
+                ]
+              }
+            }')
+
+          echo "$RESPONSE" | jq '.results' > /tmp/features.json
+
+          COUNT=$(echo "$RESPONSE" | jq '.results | length')
+          echo "Found $COUNT ready features"
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Issues for each feature
+        if: steps.notion-query.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+        run: |
+          jq -c '.[]' /tmp/features.json | while read -r feature; do
+            PAGE_ID=$(echo "$feature" | jq -r '.id')
+            SHORT_ID=$(echo "$PAGE_ID" | cut -c1-8)
+
+            TITLE=$(echo "$feature" | jq -r '.properties.Title.title[0].plain_text // "Untitled Feature"')
+            DESCRIPTION=$(echo "$feature" | jq -r '[.properties.Description.rich_text[].plain_text] | join("")' 2>/dev/null || echo "No description provided")
+            PRIORITY=$(echo "$feature" | jq -r '.properties.Priority.select.name // "Medium"')
+
+            # Idempotency check: skip if issue already exists for this Notion page
+            EXISTING=$(gh issue list --search "notion-id:${PAGE_ID}" --json number --jq '.[0].number' 2>/dev/null || echo "")
+            if [ -n "$EXISTING" ] && [ "$EXISTING" != "null" ]; then
+              echo "Issue already exists for Notion page $SHORT_ID (issue #$EXISTING), skipping"
+              continue
+            fi
+
+            ISSUE_BODY=$(cat <<ISSUEEOF
+          ## Feature Request from Notion
+
+          **Notion Page ID:** \`${PAGE_ID}\`
+          **Priority:** ${PRIORITY}
+
+          ### Description
+
+          ${DESCRIPTION}
+
+          ---
+          <!-- notion-id:${PAGE_ID} -->
+          <!-- auto-implement -->
+          ISSUEEOF
+          )
+
+            ISSUE_URL=$(gh issue create \
+              --title "[Feature] ${TITLE}" \
+              --body "$ISSUE_BODY" \
+              --label "auto-implement")
+
+            echo "Created issue: $ISSUE_URL for Notion feature: $TITLE ($SHORT_ID)"
+
+            # Update Notion status to "In progress" to prevent re-processing
+            curl -s -X PATCH \
+              "https://api.notion.com/v1/pages/${PAGE_ID}" \
+              -H "Authorization: Bearer ${NOTION_API_KEY}" \
+              -H "Notion-Version: 2022-06-28" \
+              -H "Content-Type: application/json" \
+              --data '{
+                "properties": {
+                  "State": {
+                    "status": {
+                      "name": "In progress"
+                    }
+                  }
+                }
+              }' > /dev/null
+
+            echo "Updated Notion page $SHORT_ID status to In progress"
+          done

@@ -1,0 +1,8 @@
+{
+  "title": "Counter Demo",
+  "description": "A simple interactive counter to demonstrate the prototype playground setup with shared components.",
+  "author": "example-designer",
+  "date": "2026-03-01",
+  "tags": ["demo", "interactive"],
+  "status": "complete"
+}
