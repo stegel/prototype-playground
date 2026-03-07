@@ -244,30 +244,45 @@ async function implementFeature(page) {
   git("push", "origin", branchName, "--force");
   console.log(`  Pushed branch: ${branchName}`);
 
-  // 8. Create PR on Gitea
-  const pr = await giteaApi(
-    "POST",
-    `/repos/${GITEA_OWNER}/${GITEA_REPO}/pulls`,
-    {
-      title: `[Feature] ${title}`,
-      body: [
-        `## Feature Request from Notion`,
-        ``,
-        `**Priority:** ${priority}`,
-        `**Notion Page:** \`${pageId}\``,
-        ``,
-        `### Description`,
-        ``,
-        description || "No description provided.",
-        ``,
-        `---`,
-        `*Implemented automatically by Claude Code via the Notion pipeline.*`,
-      ].join("\n"),
-      head: branchName,
-      base: "main",
+  // 8. Create PR on Gitea (or find existing one)
+  let pr;
+  try {
+    pr = await giteaApi(
+      "POST",
+      `/repos/${GITEA_OWNER}/${GITEA_REPO}/pulls`,
+      {
+        title: `[Feature] ${title}`,
+        body: [
+          `## Feature Request from Notion`,
+          ``,
+          `**Priority:** ${priority}`,
+          `**Notion Page:** \`${pageId}\``,
+          ``,
+          `### Description`,
+          ``,
+          description || "No description provided.",
+          ``,
+          `---`,
+          `*Implemented automatically by Claude Code via the Notion pipeline.*`,
+        ].join("\n"),
+        head: branchName,
+        base: "main",
+      }
+    );
+    console.log(`  Created PR #${pr.number}: ${pr.html_url}`);
+  } catch (err) {
+    if (err.message.includes("409")) {
+      // PR already exists, find it
+      const pulls = await giteaApi(
+        "GET",
+        `/repos/${GITEA_OWNER}/${GITEA_REPO}/pulls?state=open&head=${branchName}`
+      );
+      pr = pulls[0];
+      console.log(`  PR already exists #${pr.number}: ${pr.html_url}`);
+    } else {
+      throw err;
     }
-  );
-  console.log(`  Created PR #${pr.number}: ${pr.html_url}`);
+  }
 
   // 9. Update Notion state to "Review"
   await setNotionState(pageId, "Review");
