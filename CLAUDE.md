@@ -11,6 +11,7 @@ Multiple designers share this repo, each with their own namespace folder for pro
 - TypeScript 5
 - Tailwind CSS v4 (CSS-first `@theme` config)
 - React 19
+- DaisyUI 5 (component classes via `@plugin "daisyui"`)
 - Utilities: clsx + tailwind-merge (via `cn()` helper)
 
 ## Project Structure
@@ -84,9 +85,17 @@ export default function MyPrototype() {
 - Prototype folder: kebab-case from title (e.g., "Onboarding Flow" → `onboarding-flow`)
 - If a feature request doesn't specify a designer, use `claude-bot` as the designer name
 
-## Shared UI Components
+## DaisyUI Components
 
-Import from `@/components/ui`:
+DaisyUI 5 is available globally via `@plugin "daisyui"` in globals.css. Use DaisyUI component classes directly in JSX — no imports needed. Choose components contextually based on what you're building. See https://daisyui.com/components/ for the full reference.
+
+Examples: `btn`, `card`, `input`, `modal`, `drawer`, `tabs`, `navbar`, `alert`, `badge`, `table`, `toggle`, `select`, `textarea`, `collapse`, `stat`, `hero`, `tooltip`, `dropdown`, `swap`.
+
+Use DaisyUI modifier classes for variants (e.g., `btn-primary`, `btn-ghost`, `card-compact`, `input-bordered`).
+
+## Legacy Shared UI Components
+
+Import from `@/components/ui` (these predate DaisyUI — prefer DaisyUI classes for new prototypes):
 
 - **Button** — variants: `primary` (default), `secondary`, `ghost`, `destructive`; sizes: `sm`, `md`, `lg`
 - **Card** — container with border, rounded corners, and shadow
