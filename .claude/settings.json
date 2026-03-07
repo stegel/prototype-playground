@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write",
+      "Edit",
+      "Bash(npm run build)",
+      "Bash(npm run lint)",
+      "Bash(mkdir -p *)",
+      "Bash(git *)",
+      "Bash(ls *)"
+    ]
+  }
+}
