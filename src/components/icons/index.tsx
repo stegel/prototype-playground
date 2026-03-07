@@ -9,7 +9,11 @@ export type IconName =
   | "clock"
   | "check"
   | "code"
-  | "globe";
+  | "globe"
+  | "message-circle"
+  | "panel-right"
+  | "x"
+  | "trash";
 
 interface IconProps extends SVGProps<SVGSVGElement> {
   name: IconName;
@@ -75,6 +79,31 @@ const icons: Record<IconName, (props: SVGProps<SVGSVGElement>) => React.ReactEle
       <circle cx="12" cy="12" r="10" />
       <line x1="2" y1="12" x2="22" y2="12" />
       <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+    </svg>
+  ),
+  "message-circle": (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+    </svg>
+  ),
+  "panel-right": (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <line x1="15" y1="3" x2="15" y2="21" />
+    </svg>
+  ),
+  x: (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  ),
+  trash: (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+      <path d="M10 11v6M14 11v6" />
+      <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" />
     </svg>
   ),
 };
