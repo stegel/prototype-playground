@@ -1,0 +1,8 @@
+{
+  "title": "Counter with Reset Button",
+  "description": "A simple counter prototype with increment, decrement, and reset buttons in a clean card layout.",
+  "author": "claude-bot",
+  "date": "2026-03-07",
+  "tags": ["counter", "interactive", "buttons"],
+  "status": "complete"
+}
