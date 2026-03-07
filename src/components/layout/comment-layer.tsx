@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useRef, type KeyboardEvent } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { Icon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
-import type { PrototypeMeta } from "@/lib/types";
+import { UserMenu } from "@/components/layout/user-menu";
+import type { PrototypeMeta, CommentAuthor } from "@/lib/types";
 import { cn, displayName, formatDate } from "@/lib/utils";
 
 interface Comment {
@@ -14,6 +16,7 @@ interface Comment {
   text: string;
   createdAt: string;
   resolved: boolean;
+  author?: CommentAuthor;
 }
 
 interface CommentLayerProps {
@@ -24,6 +27,7 @@ interface CommentLayerProps {
 }
 
 export function CommentLayer({ meta, designer, slug, children }: CommentLayerProps) {
+  const { data: session } = useSession();
   const [commentMode, setCommentMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -80,6 +84,9 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
       text: pendingText.trim(),
       createdAt: new Date().toISOString(),
       resolved: false,
+      author: session?.user
+        ? { name: session.user.name ?? null, image: session.user.image ?? null }
+        : undefined,
     };
     setComments((prev) => [...prev, comment]);
     setPendingPin(null);
@@ -206,6 +213,8 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
               </span>
             )}
           </button>
+          <div className="h-4 w-px bg-border mx-1" />
+          <UserMenu />
         </div>
       </header>
 
@@ -328,6 +337,18 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete 
           onClick={(e) => e.stopPropagation()}
         >
           <div className="p-3">
+            {comment.author?.name && (
+              <div className="flex items-center gap-1.5 mb-1.5">
+                {comment.author.image ? (
+                  <img src={comment.author.image} alt="" className="w-4 h-4 rounded-full" referrerPolicy="no-referrer" />
+                ) : (
+                  <div className="w-4 h-4 rounded-full bg-accent/20 text-accent text-[8px] font-bold flex items-center justify-center">
+                    {comment.author.name[0]?.toUpperCase()}
+                  </div>
+                )}
+                <span className="text-xs font-medium text-text-secondary">{comment.author.name}</span>
+              </div>
+            )}
             <p className="text-sm text-text-primary leading-relaxed">{comment.text}</p>
             <p className="text-xs text-text-tertiary mt-1.5">
               {new Date(comment.createdAt).toLocaleDateString(undefined, {
@@ -570,6 +591,9 @@ function SidebarItem({ comment, index, isActive, onActivate, onResolve, onDelete
           {index}
         </span>
         <div className="flex-1 min-w-0">
+          {comment.author?.name && (
+            <p className="text-xs font-medium text-text-secondary mb-0.5">{comment.author.name}</p>
+          )}
           <p className="text-sm text-text-primary leading-snug line-clamp-3">{comment.text}</p>
           <p className="text-xs text-text-tertiary mt-1">
             {new Date(comment.createdAt).toLocaleDateString(undefined, {
