@@ -144,6 +144,15 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
             </Badge>
           ))}
           <div className="h-4 w-px bg-border mx-1" />
+          {/* New project */}
+          <Link
+            href="/prototypes/claude-bot/create-new-project"
+            className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium bg-bg-secondary text-text-secondary border border-border hover:bg-bg-tertiary hover:text-text-primary transition-colors"
+          >
+            <Icon name="plus" size={14} />
+            <span>New project</span>
+          </Link>
+          <div className="h-4 w-px bg-border mx-1" />
           {/* Comment mode toggle */}
           <button
             onClick={toggleCommentMode}
