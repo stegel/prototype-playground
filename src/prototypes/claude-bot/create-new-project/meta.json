@@ -1,0 +1,8 @@
+{
+  "title": "Create New Project",
+  "description": "A form to create a new prototype project in the playground. Scaffolds the folder, meta.json, and starter page.tsx for any designer.",
+  "author": "claude-bot",
+  "date": "2026-03-07",
+  "tags": ["tool", "meta", "interactive"],
+  "status": "complete"
+}
