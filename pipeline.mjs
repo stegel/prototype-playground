@@ -46,6 +46,8 @@ const GITEA_OWNER = process.env.GITEA_OWNER;
 const GITEA_REPO = process.env.GITEA_REPO;
 const CLAUDE_BIN = process.env.CLAUDE_BIN || "claude";
 const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL || "300", 10); // seconds
+const PUSHOVER_USER = process.env.PUSHOVER_USER;
+const PUSHOVER_TOKEN = process.env.PUSHOVER_TOKEN;
 const PROJECT_DIR = process.cwd();
 
 const required = {
@@ -63,6 +65,27 @@ if (missing.length) {
   console.error(`Missing required env vars: ${missing.join(", ")}`);
   console.error("Copy .env.example to .env and fill in the values.");
   process.exit(1);
+}
+
+// ── Pushover notifications ──────────────────────────────────────────────────
+
+async function notify(title, message, url) {
+  if (!PUSHOVER_USER || !PUSHOVER_TOKEN) return;
+  try {
+    const body = new URLSearchParams({
+      token: PUSHOVER_TOKEN,
+      user: PUSHOVER_USER,
+      title,
+      message,
+      ...(url && { url, url_title: "View PR" }),
+    });
+    await fetch("https://api.pushover.net/1/messages.json", {
+      method: "POST",
+      body,
+    });
+  } catch (err) {
+    console.error("  Pushover notification failed:", err.message);
+  }
 }
 
 // ── Notion API helper ───────────────────────────────────────────────────────
@@ -217,6 +240,7 @@ async function implementFeature(page) {
     });
   } catch (err) {
     console.error(`  Claude Code failed: ${err.message}`);
+    await notify(`Failed: ${title}`, `Claude Code failed to implement "${title}": ${err.message}`);
     // Reset branch and go back to main
     git("checkout", "main");
     git("branch", "-D", branchName);
@@ -288,7 +312,14 @@ async function implementFeature(page) {
   await setNotionState(pageId, "Review");
   console.log("  Notion state -> Review");
 
-  // 10. Switch back to main
+  // 10. Notify
+  await notify(
+    `PR Ready: ${title}`,
+    `Claude implemented "${title}" and created PR #${pr.number}. Ready for review.`,
+    pr.html_url
+  );
+
+  // 11. Switch back to main
   git("checkout", "main");
 
   return pr;
