@@ -36,3 +36,8 @@ export interface DesignerGroup {
   designer: string;
   prototypes: PrototypeEntry[];
 }
+
+export interface CommentAuthor {
+  name: string | null;
+  image: string | null;
+}
