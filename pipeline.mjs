@@ -294,9 +294,51 @@ async function implementFeature(page) {
   return pr;
 }
 
-async function poll() {
-  console.log(`\n[${new Date().toISOString()}] Polling Notion for ready features...`);
+async function checkMergedPRs() {
+  // Find Notion items in "Review" state and check if their PRs were merged
+  const response = await notionApi("POST", `/databases/${NOTION_DATABASE_ID}/query`, {
+    filter: {
+      and: [
+        { property: "State", status: { equals: "Review" } },
+        { property: "Project", multi_select: { contains: "Prototype Playground" } },
+      ],
+    },
+  });
 
+  if (!response.results.length) return;
+
+  // Get all closed (merged) PRs from Gitea
+  const closedPRs = await giteaApi(
+    "GET",
+    `/repos/${GITEA_OWNER}/${GITEA_REPO}/pulls?state=closed&sort=updated&limit=50`
+  );
+  const mergedBranches = new Set(
+    closedPRs.filter((pr) => pr.merged).map((pr) => pr.head.ref)
+  );
+
+  for (const page of response.results) {
+    const title = getTitle(page);
+    const slug = slugify(title);
+    const branchName = `feature/${slug}`;
+
+    if (mergedBranches.has(branchName)) {
+      await setNotionState(page.id, "Done");
+      console.log(`  "${title}" PR merged -> Done`);
+    }
+  }
+}
+
+async function poll() {
+  console.log(`\n[${new Date().toISOString()}] Polling...`);
+
+  // Check for merged PRs and update Notion to "Done"
+  try {
+    await checkMergedPRs();
+  } catch (err) {
+    console.error("Failed to check merged PRs:", err.message);
+  }
+
+  // Check for new features to implement
   const features = await queryReadyFeatures();
   console.log(`Found ${features.length} ready feature(s)`);
 
