@@ -7,12 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "new": "node scripts/new-prototype.mjs"
+    "new": "node scripts/new-prototype.mjs",
+    "pipeline": "node pipeline.mjs",
+    "pipeline:watch": "node pipeline.mjs --watch"
   },
   "dependencies": {
-    "@notionhq/client": "^5.11.1",
     "clsx": "^2.1.1",
-    "express": "^5.2.1",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
