@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Redis } from "@upstash/redis";
+import { getRedis } from "@/lib/redis";
+import { auth } from "@/lib/auth";
+
+interface CommentAuthor {
+  name: string | null;
+  image: string | null;
+}
 
 interface Comment {
   id: string;
@@ -8,15 +14,7 @@ interface Comment {
   text: string;
   createdAt: string;
   resolved: boolean;
-}
-
-function getRedis() {
-  const url = process.env.KV_REST_API_URL;
-  const token = process.env.KV_REST_API_TOKEN;
-  if (!url || !token) {
-    return null;
-  }
-  return new Redis({ url, token });
+  author?: CommentAuthor;
 }
 
 function key(designer: string, slug: string) {
@@ -57,12 +55,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "designer, slug, and comment required" }, { status: 400 });
   }
 
+  const session = await auth();
+  const commentWithAuthor: Comment = {
+    ...comment,
+    author: session?.user
+      ? { name: session.user.name ?? null, image: session.user.image ?? null }
+      : undefined,
+  };
+
   const k = key(designer, slug);
   const comments = (await redis.get<Comment[]>(k)) ?? [];
-  comments.push(comment);
+  comments.push(commentWithAuthor);
   await redis.set(k, comments);
 
-  return NextResponse.json(comment, { status: 201 });
+  return NextResponse.json(commentWithAuthor, { status: 201 });
 }
 
 export async function PATCH(req: NextRequest) {

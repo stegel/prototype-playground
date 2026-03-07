@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useSession } from "next-auth/react";
 import { Button, Card, Input, Badge } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
@@ -68,6 +69,7 @@ function TagInput({
 }
 
 export default function CreateNewProject() {
+  const { data: session } = useSession();
   const [designers, setDesigners] = useState<string[]>([]);
   const [designer, setDesigner] = useState("");
   const [customDesigner, setCustomDesigner] = useState("");
@@ -78,6 +80,7 @@ export default function CreateNewProject() {
   const [formStatus, setFormStatus] = useState<Status>("pending");
   const [errorMsg, setErrorMsg] = useState("");
   const [result, setResult] = useState<{ path: string; designer: string; slug: string } | null>(null);
+  const [hasAutoSelected, setHasAutoSelected] = useState(false);
 
   useEffect(() => {
     fetch("/api/designers")
@@ -85,6 +88,16 @@ export default function CreateNewProject() {
       .then((data: { designers: string[] }) => setDesigners(data.designers))
       .catch(() => {});
   }, []);
+
+  // Auto-select the user's claimed folder
+  useEffect(() => {
+    if (hasAutoSelected || designer) return;
+    const folder = session?.user?.designerFolder;
+    if (folder && designers.includes(folder)) {
+      setDesigner(folder);
+      setHasAutoSelected(true);
+    }
+  }, [session, designers, designer, hasAutoSelected]);
 
   const effectiveDesigner = designer === "__new__" ? customDesigner : designer;
 

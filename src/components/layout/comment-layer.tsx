@@ -2,9 +2,12 @@
 
 import { useState, useEffect, useRef, type KeyboardEvent } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { Icon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
-import type { PrototypeMeta } from "@/lib/types";
+import { UserMenu } from "@/components/layout/user-menu";
+import { DarkModeToggle } from "@/components/layout/dark-mode-toggle";
+import type { PrototypeMeta, CommentAuthor } from "@/lib/types";
 import { cn, displayName, formatDate } from "@/lib/utils";
 
 interface Comment {
@@ -14,6 +17,7 @@ interface Comment {
   text: string;
   createdAt: string;
   resolved: boolean;
+  author?: CommentAuthor;
 }
 
 interface CommentLayerProps {
@@ -24,6 +28,7 @@ interface CommentLayerProps {
 }
 
 export function CommentLayer({ meta, designer, slug, children }: CommentLayerProps) {
+  const { data: session } = useSession();
   const [commentMode, setCommentMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -80,6 +85,9 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
       text: pendingText.trim(),
       createdAt: new Date().toISOString(),
       resolved: false,
+      author: session?.user
+        ? { name: session.user.name ?? null, image: session.user.image ?? null }
+        : undefined,
     };
     setComments((prev) => [...prev, comment]);
     setPendingPin(null);
@@ -121,7 +129,7 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="border-b border-border px-6 py-3 flex items-center gap-4 bg-white shrink-0">
+      <header className="border-b border-border px-6 py-3 flex items-center gap-4 bg-bg shrink-0">
         <Link
           href="/"
           className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors"
@@ -206,6 +214,9 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
               </span>
             )}
           </button>
+          <div className="h-4 w-px bg-border mx-1" />
+          <DarkModeToggle />
+          <UserMenu />
         </div>
       </header>
 
@@ -214,7 +225,8 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
         {/* Content with overlay */}
         <div
           ref={contentRef}
-          className={cn("flex-1 relative overflow-auto", commentMode && "cursor-crosshair")}
+          data-no-dark
+          className={cn("flex-1 relative overflow-auto bg-bg", commentMode && "cursor-crosshair")}
           onClick={handleContentClick}
         >
           {children}
@@ -324,10 +336,22 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete 
       {isActive && (
         <div
           data-comment-ui
-          className="absolute top-3 left-4 z-30 w-64 bg-white rounded-lg shadow-card-hover border border-border"
+          className="absolute top-3 left-4 z-30 w-64 bg-bg rounded-lg shadow-card-hover border border-border"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="p-3">
+            {comment.author?.name && (
+              <div className="flex items-center gap-1.5 mb-1.5">
+                {comment.author.image ? (
+                  <img src={comment.author.image} alt="" className="w-4 h-4 rounded-full" referrerPolicy="no-referrer" />
+                ) : (
+                  <div className="w-4 h-4 rounded-full bg-accent/20 text-accent text-[8px] font-bold flex items-center justify-center">
+                    {comment.author.name[0]?.toUpperCase()}
+                  </div>
+                )}
+                <span className="text-xs font-medium text-text-secondary">{comment.author.name}</span>
+              </div>
+            )}
             <p className="text-sm text-text-primary leading-relaxed">{comment.text}</p>
             <p className="text-xs text-text-tertiary mt-1.5">
               {new Date(comment.createdAt).toLocaleDateString(undefined, {
@@ -405,7 +429,7 @@ function PendingPin({ x, y, text, onTextChange, onSubmit, onCancel }: PendingPin
         <Icon name="message-circle" size={12} className="text-white" />
       </div>
       {/* Input popover */}
-      <div className="absolute top-3 left-4 w-64 bg-white rounded-lg shadow-card-hover border border-border">
+      <div className="absolute top-3 left-4 w-64 bg-bg rounded-lg shadow-card-hover border border-border">
         <div className="p-3">
           <textarea
             ref={inputRef}
@@ -463,7 +487,7 @@ function CommentSidebar({
   const resolved = comments.filter((c) => c.resolved);
 
   return (
-    <aside className="w-72 border-l border-border bg-white flex flex-col shrink-0 overflow-hidden">
+    <aside className="w-72 border-l border-border bg-bg flex flex-col shrink-0 overflow-hidden">
       <div className="px-4 py-3 border-b border-border flex items-center justify-between">
         <h2 className="text-sm font-semibold text-text-primary">
           Comments
@@ -570,6 +594,9 @@ function SidebarItem({ comment, index, isActive, onActivate, onResolve, onDelete
           {index}
         </span>
         <div className="flex-1 min-w-0">
+          {comment.author?.name && (
+            <p className="text-xs font-medium text-text-secondary mb-0.5">{comment.author.name}</p>
+          )}
           <p className="text-sm text-text-primary leading-snug line-clamp-3">{comment.text}</p>
           <p className="text-xs text-text-tertiary mt-1">
             {new Date(comment.createdAt).toLocaleDateString(undefined, {

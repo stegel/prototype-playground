@@ -1,9 +1,14 @@
 import Link from "next/link";
 import { discoverAllPrototypes } from "@/lib/discovery";
 import { SearchHome } from "@/components/home/search-home";
+import { UserMenu } from "@/components/layout/user-menu";
+import { DarkModeToggle } from "@/components/layout/dark-mode-toggle";
+import { auth } from "@/lib/auth";
 
 export default async function HomePage() {
   const designerGroups = discoverAllPrototypes();
+  const session = await auth();
+  const currentDesigner = session?.user?.designerFolder ?? null;
 
   return (
     <main className="max-w-6xl mx-auto px-6 py-12">
@@ -17,14 +22,18 @@ export default async function HomePage() {
             inspired.
           </p>
         </div>
-        {process.env.NODE_ENV === "development" && (
-          <Link
-            href="/prototypes/claude-bot/create-new-project"
-            className="shrink-0 mt-1 flex items-center gap-1.5 px-4 h-9 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors"
-          >
-            + New project
-          </Link>
-        )}
+        <div className="flex items-center gap-3 shrink-0 mt-1">
+          {process.env.NODE_ENV === "development" && (
+            <Link
+              href="/prototypes/claude-bot/create-new-project"
+              className="flex items-center gap-1.5 px-4 h-9 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors"
+            >
+              + New project
+            </Link>
+          )}
+          <DarkModeToggle />
+          <UserMenu />
+        </div>
       </header>
 
       {designerGroups.length === 0 ? (
@@ -39,7 +48,10 @@ export default async function HomePage() {
           </p>
         </div>
       ) : (
-        <SearchHome designerGroups={designerGroups} />
+        <SearchHome
+          designerGroups={designerGroups}
+          currentDesigner={currentDesigner}
+        />
       )}
     </main>
   );
