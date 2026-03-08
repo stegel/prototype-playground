@@ -346,6 +346,11 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete,
   const [replyOpen, setReplyOpen] = useState(false);
   const [replyText, setReplyText] = useState("");
   const replyInputRef = useRef<HTMLTextAreaElement>(null);
+  const replyPickerRef = useRef<HTMLDivElement>(null);
+  const [showReplyEmojiPicker, setShowReplyEmojiPicker] = useState(false);
+  const [replySuggestions, setReplySuggestions] = useState<Array<{ key: string; emoji: string }>>([]);
+  const [replyShortcodeStart, setReplyShortcodeStart] = useState<number | null>(null);
+  const [replyActiveSuggestion, setReplyActiveSuggestion] = useState(0);
 
   // Close popover on outside click
   useEffect(() => {
@@ -369,8 +374,75 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete,
     if (!isActive) {
       setReplyOpen(false);
       setReplyText("");
+      setShowReplyEmojiPicker(false);
+      setReplySuggestions([]);
     }
   }, [isActive]);
+
+  // Close emoji picker on outside click
+  useEffect(() => {
+    if (!showReplyEmojiPicker) return;
+    const handler = (e: MouseEvent) => {
+      if (replyPickerRef.current && !replyPickerRef.current.contains(e.target as Node)) {
+        setShowReplyEmojiPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showReplyEmojiPicker]);
+
+  const insertReplyEmoji = (emoji: string, replaceFrom?: number) => {
+    const textarea = replyInputRef.current;
+    const cursorPos = textarea?.selectionStart ?? replyText.length;
+    const start = replaceFrom ?? cursorPos;
+    const newText = replyText.slice(0, start) + emoji + replyText.slice(cursorPos);
+    setReplyText(newText);
+    setReplySuggestions([]);
+    setReplyShortcodeStart(null);
+    setShowReplyEmojiPicker(false);
+    const newPos = start + emoji.length;
+    requestAnimationFrame(() => {
+      if (textarea) {
+        textarea.focus();
+        textarea.setSelectionRange(newPos, newPos);
+      }
+    });
+  };
+
+  const handleReplyTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setReplyText(val);
+    const cursor = e.target.selectionStart;
+    const textUpToCursor = val.slice(0, cursor);
+    const colonIdx = textUpToCursor.lastIndexOf(":");
+    if (colonIdx !== -1 && colonIdx < cursor) {
+      const query = textUpToCursor.slice(colonIdx + 1);
+      if (/^[a-z_]*$/.test(query)) {
+        const suggestions = getShortcodeSuggestions(query);
+        setReplySuggestions(suggestions);
+        setReplyShortcodeStart(colonIdx);
+        setReplyActiveSuggestion(0);
+        return;
+      }
+    }
+    setReplySuggestions([]);
+    setReplyShortcodeStart(null);
+  };
+
+  const handleReplyKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (replySuggestions.length > 0) {
+      if (e.key === "ArrowDown") { e.preventDefault(); setReplyActiveSuggestion((a) => Math.min(a + 1, replySuggestions.length - 1)); return; }
+      if (e.key === "ArrowUp") { e.preventDefault(); setReplyActiveSuggestion((a) => Math.max(a - 1, 0)); return; }
+      if (e.key === "Tab" || (e.key === "Enter" && replySuggestions.length > 0)) {
+        e.preventDefault();
+        insertReplyEmoji(replySuggestions[replyActiveSuggestion].emoji, replyShortcodeStart ?? undefined);
+        return;
+      }
+      if (e.key === "Escape") { setReplySuggestions([]); return; }
+    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submitReply(); }
+    if (e.key === "Escape") { setReplyOpen(false); setReplyText(""); }
+  };
 
   const submitReply = () => {
     if (!replyText.trim()) return;
@@ -478,32 +550,94 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete,
           {/* Reply input */}
           {replyOpen && (
             <div className="border-t border-border p-3">
+              {/* Shortcode suggestions */}
+              {replySuggestions.length > 0 && (
+                <div className="mb-1.5 flex flex-wrap gap-0.5 bg-bg-secondary rounded p-1">
+                  {replySuggestions.map((s, i) => (
+                    <button
+                      key={s.key}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        insertReplyEmoji(s.emoji, replyShortcodeStart ?? undefined);
+                      }}
+                      title={`:${s.key}:`}
+                      className={cn(
+                        "flex items-center gap-1 text-xs px-1.5 py-0.5 rounded transition-colors",
+                        i === replyActiveSuggestion
+                          ? "bg-accent text-white"
+                          : "hover:bg-bg-secondary text-text-secondary"
+                      )}
+                    >
+                      <span className="text-base leading-none">{s.emoji}</span>
+                      <span className="text-text-tertiary">{s.key}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
               <textarea
                 ref={replyInputRef}
                 value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submitReply(); }
-                  if (e.key === "Escape") { setReplyOpen(false); setReplyText(""); }
-                }}
-                placeholder="Reply… (Enter to post)"
+                onChange={handleReplyTextChange}
+                onKeyDown={handleReplyKeyDown}
+                placeholder="Reply… (Enter to post, :emoji: for emojis)"
                 rows={2}
                 className="w-full text-sm text-text-primary placeholder:text-text-tertiary resize-none outline-none leading-relaxed"
               />
-              <div className="flex justify-end gap-1.5 mt-1.5">
-                <button
-                  onClick={() => { setReplyOpen(false); setReplyText(""); }}
-                  className="text-xs font-medium px-2 h-6 rounded text-text-secondary hover:bg-bg-secondary transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={submitReply}
-                  disabled={!replyText.trim()}
-                  className="text-xs font-medium px-2 h-6 rounded bg-accent text-white disabled:opacity-40 hover:bg-accent-hover transition-colors"
-                >
-                  Reply
-                </button>
+              <div className="flex items-center justify-between mt-1.5">
+                <div className="relative" ref={replyPickerRef}>
+                  <button
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setShowReplyEmojiPicker((v) => !v);
+                    }}
+                    title="Insert emoji"
+                    className="text-base leading-none w-6 h-6 flex items-center justify-center rounded hover:bg-bg-secondary transition-colors"
+                  >
+                    😊
+                  </button>
+                  {showReplyEmojiPicker && (
+                    <div className="absolute bottom-full left-0 mb-1 w-64 bg-bg rounded-lg shadow-card-hover border border-border z-40 overflow-hidden">
+                      <div className="max-h-52 overflow-y-auto p-2 space-y-2">
+                        {EMOJI_CATEGORIES.map((cat) => (
+                          <div key={cat.name}>
+                            <p className="text-[10px] font-semibold text-text-tertiary uppercase tracking-wide mb-1 px-1">
+                              {cat.name}
+                            </p>
+                            <div className="flex flex-wrap gap-0.5">
+                              {cat.emojis.map((emoji) => (
+                                <button
+                                  key={emoji}
+                                  onMouseDown={(e) => {
+                                    e.preventDefault();
+                                    insertReplyEmoji(emoji);
+                                  }}
+                                  className="text-xl w-8 h-8 flex items-center justify-center rounded hover:bg-bg-secondary transition-colors"
+                                >
+                                  {emoji}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => { setReplyOpen(false); setReplyText(""); }}
+                    className="text-xs font-medium px-2 h-6 rounded text-text-secondary hover:bg-bg-secondary transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={submitReply}
+                    disabled={!replyText.trim()}
+                    className="text-xs font-medium px-2 h-6 rounded bg-accent text-white disabled:opacity-40 hover:bg-accent-hover transition-colors"
+                  >
+                    Reply
+                  </button>
+                </div>
               </div>
             </div>
           )}
