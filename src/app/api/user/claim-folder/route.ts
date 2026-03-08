@@ -64,6 +64,7 @@ export async function GET() {
     unclaimed,
     allFolders,
   });
+  return NextResponse.json({ currentFolder, unclaimed, allFolders });
 }
 
 export async function POST(req: NextRequest) {

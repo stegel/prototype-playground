@@ -56,6 +56,7 @@ export default function SignInPage() {
           <h2 className="card-title justify-center text-2xl mb-2">
             Sign in
           </h2>
+    
 
           <button
             className="btn btn-outline w-full gap-2"
@@ -101,6 +102,7 @@ export default function SignInPage() {
             {error && (
               <div className="text-error text-sm">{error}</div>
             )}
+            {error && <div className="text-error text-sm">{error}</div>}
 
             <button
               type="submit"
@@ -119,6 +121,9 @@ export default function SignInPage() {
 
           <p className="text-center text-sm mt-2">
             {isRegister ? "Already have an account?" : "Don't have an account?"}{" "}
+            {isRegister
+              ? "Already have an account?"
+              : "Don't have an account?"}{" "}
             <button
               className="link link-primary"
               onClick={() => {

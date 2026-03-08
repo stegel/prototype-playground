@@ -101,9 +101,8 @@ export default function ClaimFolderPage() {
             </div>
           )}
 
-          {error && (
-            <div className="text-error text-sm mt-2">{error}</div>
-          )}
+          
+          {error && <div className="text-error text-sm mt-2">{error}</div>}
 
           <div className="card-actions mt-4">
             <button
