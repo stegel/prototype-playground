@@ -223,7 +223,8 @@ async function implementFeature(page) {
     `1. If this is a new prototype, create it under src/prototypes/claude-bot/${slug}/`,
     `   with a meta.json and page.tsx following the conventions in CLAUDE.md.`,
     `2. If this is a change to shared components or the app itself, modify the appropriate files.`,
-    `3. Use shared UI components from @/components/ui.`,
+    `3. Prefer DaisyUI 5 component classes (btn, card, input, modal, etc.) for new prototypes.`,
+    `   Fall back to shared UI components from @/components/ui only if needed.`,
     `4. Use Tailwind CSS v4 theme tokens (never raw colors).`,
     `5. Make the prototype interactive and functional.`,
     `6. Run npm run build to verify no errors.`,
@@ -308,18 +309,43 @@ async function implementFeature(page) {
     }
   }
 
-  // 9. Update Notion state to "Review"
+  // 9. Add PR link as a comment on the Notion page
+  try {
+    await notionApi("POST", `/comments`, {
+      parent: { page_id: pageId },
+      rich_text: [
+        {
+          type: "text",
+          text: {
+            content: `PR #${pr.number}: `,
+          },
+        },
+        {
+          type: "text",
+          text: {
+            content: pr.html_url,
+            link: { url: pr.html_url },
+          },
+        },
+      ],
+    });
+    console.log("  Added PR link comment to Notion page");
+  } catch (err) {
+    console.error("  Failed to add Notion comment:", err.message);
+  }
+
+  // 10. Update Notion state to "Review"
   await setNotionState(pageId, "Review");
   console.log("  Notion state -> Review");
 
-  // 10. Notify
+  // 11. Notify
   await notify(
     `PR Ready: ${title}`,
     `Claude implemented "${title}" and created PR #${pr.number}. Ready for review.`,
     pr.html_url
   );
 
-  // 11. Switch back to main
+  // 12. Switch back to main
   git("checkout", "main");
 
   return pr;
