@@ -74,6 +74,50 @@ export function discoverExternalPrototypes(): ExternalPrototype[] {
   }
 }
 
+export interface RecentPrototype {
+  title: string;
+  path: string;
+  updatedAt: Date;
+}
+
+export function getRecentPrototypes(limit = 5): RecentPrototype[] {
+  if (!fs.existsSync(PROTOTYPES_DIR)) return [];
+
+  const results: RecentPrototype[] = [];
+  const designerDirs = fs.readdirSync(PROTOTYPES_DIR, { withFileTypes: true });
+
+  for (const designerEntry of designerDirs) {
+    if (!designerEntry.isDirectory()) continue;
+    if (designerEntry.name.startsWith("_")) continue;
+
+    const designerPath = path.join(PROTOTYPES_DIR, designerEntry.name);
+    const prototypeDirs = fs.readdirSync(designerPath, { withFileTypes: true });
+
+    for (const protoEntry of prototypeDirs) {
+      if (!protoEntry.isDirectory()) continue;
+      if (protoEntry.name.startsWith("_")) continue;
+
+      const protoPath = path.join(designerPath, protoEntry.name);
+      const metaPath = path.join(protoPath, "meta.json");
+      if (!fs.existsSync(metaPath)) continue;
+
+      const meta = readMeta(protoPath);
+      if (!meta) continue;
+
+      const stat = fs.statSync(metaPath);
+      results.push({
+        title: meta.title,
+        path: `/prototypes/${designerEntry.name}/${protoEntry.name}`,
+        updatedAt: stat.mtime,
+      });
+    }
+  }
+
+  return results
+    .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+    .slice(0, limit);
+}
+
 export function discoverAllPrototypes(): DesignerGroup[] {
   const local = discoverLocalPrototypes();
   const external = discoverExternalPrototypes();
