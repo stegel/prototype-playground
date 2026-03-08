@@ -501,8 +501,9 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete,
               {new Date(comment.createdAt).toLocaleDateString(undefined, {
                 month: "short",
                 day: "numeric",
-                hour: "2-digit",
+                hour: "numeric",
                 minute: "2-digit",
+                hour12: true,
               })}
             </p>
           </div>
@@ -530,8 +531,9 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete,
                       {new Date(reply.createdAt).toLocaleDateString(undefined, {
                         month: "short",
                         day: "numeric",
-                        hour: "2-digit",
+                        hour: "numeric",
                         minute: "2-digit",
+                        hour12: true,
                       })}
                     </p>
                   </div>
@@ -1135,8 +1137,9 @@ function SidebarItem({ comment, index, isActive, onActivate, onResolve, onDelete
             {new Date(comment.createdAt).toLocaleDateString(undefined, {
               month: "short",
               day: "numeric",
-              hour: "2-digit",
+              hour: "numeric",
               minute: "2-digit",
+              hour12: true,
             })}
           </p>
           {comment.replies && comment.replies.length > 0 && (
