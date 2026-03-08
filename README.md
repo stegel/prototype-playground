@@ -2,6 +2,19 @@
 
 A shared Next.js prototyping environment where multiple designers can create, share, and get feedback on interactive prototypes. Built with Next.js 16, Tailwind CSS v4, DaisyUI 5, and TypeScript.
 
+## Table of Contents
+
+- [Getting Started](#getting-started)
+- [Integration Setup](#integration-setup)
+  - [Vercel](#vercel)
+  - [Upstash Redis](#upstash-redis)
+  - [GitHub](#github)
+  - [Notion](#notion)
+  - [Pushover](#pushover-optional)
+- [Creating a Prototype](#creating-a-prototype)
+- [Other Scripts](#other-scripts)
+- [Learn More](#learn-more)
+
 ## Getting Started
 
 ### 1. Clone the repo
@@ -41,7 +54,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the app.
 
 ### Vercel
 
-The project is deployed on Vercel, which also manages environment variables and integrations.
+The project is deployed on [Vercel](https://vercel.com), which also manages environment variables and integrations.
 
 1. Install the [Vercel CLI](https://vercel.com/docs/cli) if you don't have it:
 
@@ -65,7 +78,7 @@ This will populate most of the required variables. You can also manage env vars 
 
 ### Upstash Redis
 
-Used for persistent storage: prototype comments, user credentials, and designer folder claims. Provisioned through Vercel's integration marketplace.
+Used for persistent storage: prototype comments, user credentials, and designer folder claims. Provisioned through Vercel's integration marketplace. Read more about [Upstash on Vercel](https://upstash.com/docs/redis/howto/vercelintegration)
 
 1. In your [Vercel Dashboard](https://vercel.com), go to your project's **Storage** tab
 2. Click **Create Database** and select **Upstash Redis** (KV)
@@ -163,6 +176,72 @@ Sends push notifications when the pipeline creates a PR or fails.
 PUSHOVER_USER=your-user-key
 PUSHOVER_TOKEN=your-app-token
 ```
+
+---
+
+## Creating a Prototype
+
+This section walks you through creating a new prototype from scratch using Claude Code.
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v20+)
+- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) installed globally
+- The repo cloned and dependencies installed (see **Getting Started** above)
+
+### 1. Scaffold your prototype
+
+Run the scaffolding script with your designer name and prototype title:
+
+```bash
+npm run new <designer-name> "<Prototype Name>"
+```
+
+For example:
+
+```bash
+npm run new aj.siegel "Onboarding Flow"
+```
+
+This generates files under `src/prototypes/<designer>/<prototype>/` based on the `_template/` folder — including a `meta.json`, `page.tsx`, and a local `CLAUDE.md`.
+
+### 2. Launch Claude Code from the repo root
+
+Always start Claude Code from the **repository root** (`prototype-playground/`), not from inside your prototype folder. The project-level `CLAUDE.md` gives Claude all the context it needs about the tech stack, conventions, and available components.
+
+```bash
+cd prototype-playground
+claude
+```
+
+Then tell Claude what you want to build. Reference your prototype by path or name:
+
+```text
+Build out the prototype in src/prototypes/jane-doe/onboarding-flow based on this description: ...
+```
+
+### 3. Customize your prototype's local CLAUDE.md
+
+Each scaffolded prototype gets its own `CLAUDE.md` at `src/prototypes/<designer>/<prototype>/CLAUDE.md`. This file is **prototype-scoped** — Claude reads it when working inside that folder, and it layers on top of the project-level instructions.
+
+Use it to:
+
+- Describe what the prototype does and what problem it explores
+- Document which DaisyUI components you've chosen and why (e.g., "Use `drawer` for mobile nav, `tabs` for section switching")
+- Note any prototype-specific constraints, Figma references, or design tokens
+- Add conventions that differ from the project defaults
+
+The template includes sections for overview, UI approach, component decisions, and notes. Fill this in as you iterate — it helps Claude make better decisions when you ask for changes later.
+
+### 4. Verify your build
+
+After Claude implements your prototype, always verify it compiles:
+
+```bash
+npm run build
+```
+
+Then preview it locally with `npm run dev` and navigate to `http://localhost:3000/prototypes/<designer>/<prototype>`.
 
 ---
 
