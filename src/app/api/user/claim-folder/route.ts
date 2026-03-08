@@ -4,7 +4,7 @@ import path from "node:path";
 import { auth } from "@/lib/auth";
 import { getRedis } from "@/lib/redis";
 
-const PROTOTYPES_DIR = path.join(process.cwd(), "src", "prototypes");
+const PROTOTYPES_DIR = path.join(process.cwd(), "prototypes-repo", "src", "prototypes");
 
 interface UserMapping {
   designerFolder: string;

@@ -28,6 +28,7 @@ export default async function PrototypePage({ params }: Props) {
 
   const protoDir = path.join(
     process.cwd(),
+    "prototypes-repo",
     "src",
     "prototypes",
     designer,
@@ -39,7 +40,7 @@ export default async function PrototypePage({ params }: Props) {
   }
 
   const PrototypeComponent = dynamic(
-    () => import(`@/prototypes/${designer}/${protoSlug}/page`),
+    () => import(`@prototypes/${designer}/${protoSlug}/page`),
     {
       loading: () => (
         <div className="flex items-center justify-center h-64">
