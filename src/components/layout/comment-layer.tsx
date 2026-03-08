@@ -389,6 +389,94 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete 
   );
 }
 
+// ── Emoji Data ───────────────────────────────────────────────────────────────
+
+const EMOJI_CATEGORIES = [
+  {
+    name: "Smileys",
+    emojis: ["😀", "😂", "😊", "😍", "🤔", "😅", "😎", "🥳", "😢", "😡", "😴", "🤗", "🥺", "😏", "😤"],
+  },
+  {
+    name: "Gestures",
+    emojis: ["👍", "👎", "👋", "👏", "🙌", "💪", "🤝", "✌️", "🤞", "💯", "🙏", "👀", "✍️", "🫡", "🤌"],
+  },
+  {
+    name: "Symbols",
+    emojis: ["❤️", "🔥", "✨", "💡", "🎉", "🎊", "⭐", "💫", "🚀", "🌟", "✅", "❌", "⚠️", "💬", "📝"],
+  },
+  {
+    name: "People",
+    emojis: ["👮‍♀️", "👮‍♂️", "👩‍💻", "👨‍💻", "🧑‍🎨", "🕵️‍♀️", "🕵️‍♂️", "💂‍♀️", "💂‍♂️", "👷‍♀️", "🧑‍🔬", "🧑‍⚕️"],
+  },
+];
+
+const SHORTCODES: Record<string, string> = {
+  smile: "😊",
+  laughing: "😂",
+  lol: "😂",
+  grin: "😀",
+  thinking: "🤔",
+  sunglasses: "😎",
+  party: "🥳",
+  sad: "😢",
+  angry: "😡",
+  sleepy: "😴",
+  hug: "🤗",
+  pleading: "🥺",
+  thumbsup: "👍",
+  thumbsdown: "👎",
+  wave: "👋",
+  clap: "👏",
+  raise_hands: "🙌",
+  muscle: "💪",
+  handshake: "🤝",
+  v: "✌️",
+  crossed_fingers: "🤞",
+  "100": "💯",
+  pray: "🙏",
+  eyes: "👀",
+  write: "✍️",
+  salute: "🫡",
+  pinched: "🤌",
+  heart: "❤️",
+  fire: "🔥",
+  sparkles: "✨",
+  bulb: "💡",
+  tada: "🎉",
+  confetti: "🎊",
+  star: "⭐",
+  dizzy: "💫",
+  rocket: "🚀",
+  glowing_star: "🌟",
+  check: "✅",
+  white_check_mark: "✅",
+  x: "❌",
+  warning: "⚠️",
+  speech_balloon: "💬",
+  memo: "📝",
+  policewoman: "👮‍♀️",
+  policeman: "👮‍♂️",
+  woman_technologist: "👩‍💻",
+  man_technologist: "👨‍💻",
+  artist: "🧑‍🎨",
+  detective_woman: "🕵️‍♀️",
+  detective_man: "🕵️‍♂️",
+  guard_woman: "💂‍♀️",
+  guard_man: "💂‍♂️",
+  construction_worker_woman: "👷‍♀️",
+  scientist: "🧑‍🔬",
+  doctor: "🧑‍⚕️",
+};
+
+function getShortcodeSuggestions(query: string): Array<{ key: string; emoji: string }> {
+  if (!query) return [];
+  const lower = query.toLowerCase();
+  return Object.entries(SHORTCODES)
+    .filter(([key]) => key.startsWith(lower))
+    .slice(0, 8)
+    .map(([key, emoji]) => ({ key, emoji }));
+}
+
 // ── Pending Pin ──────────────────────────────────────────────────────────────
 
 interface PendingPinProps {
@@ -402,12 +490,96 @@ interface PendingPinProps {
 
 function PendingPin({ x, y, text, onTextChange, onSubmit, onCancel }: PendingPinProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const pickerRef = useRef<HTMLDivElement>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [suggestions, setSuggestions] = useState<Array<{ key: string; emoji: string }>>([]);
+  const [shortcodeStart, setShortcodeStart] = useState<number | null>(null);
+  const [activeSuggestion, setActiveSuggestion] = useState(0);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
+  // Close emoji picker on outside click
+  useEffect(() => {
+    if (!showEmojiPicker) return;
+    const handler = (e: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showEmojiPicker]);
+
+  const insertEmoji = (emoji: string, replaceFrom?: number) => {
+    const textarea = inputRef.current;
+    const cursorPos = textarea?.selectionStart ?? text.length;
+    const start = replaceFrom ?? cursorPos;
+    const newText = text.slice(0, start) + emoji + text.slice(cursorPos);
+    onTextChange(newText);
+    setSuggestions([]);
+    setShortcodeStart(null);
+    setShowEmojiPicker(false);
+    const newPos = start + emoji.length;
+    requestAnimationFrame(() => {
+      if (textarea) {
+        textarea.focus();
+        textarea.setSelectionRange(newPos, newPos);
+      }
+    });
+  };
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newText = e.target.value;
+    onTextChange(newText);
+
+    const cursorPos = e.target.selectionStart ?? newText.length;
+    const textBeforeCursor = newText.slice(0, cursorPos);
+    const colonIdx = textBeforeCursor.lastIndexOf(":");
+
+    if (colonIdx !== -1) {
+      const query = textBeforeCursor.slice(colonIdx + 1);
+      // Only show suggestions for single-word queries after ":"
+      if (!query.includes(" ") && query.length >= 1) {
+        const matches = getShortcodeSuggestions(query);
+        if (matches.length > 0) {
+          setSuggestions(matches);
+          setShortcodeStart(colonIdx);
+          setActiveSuggestion(0);
+          return;
+        }
+      }
+    }
+
+    setSuggestions([]);
+    setShortcodeStart(null);
+  };
+
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (suggestions.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setActiveSuggestion((i) => Math.min(i + 1, suggestions.length - 1));
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setActiveSuggestion((i) => Math.max(i - 1, 0));
+        return;
+      }
+      if (e.key === "Tab" || (e.key === "Enter" && suggestions.length > 0)) {
+        e.preventDefault();
+        insertEmoji(suggestions[activeSuggestion].emoji, shortcodeStart ?? undefined);
+        return;
+      }
+      if (e.key === "Escape") {
+        setSuggestions([]);
+        setShortcodeStart(null);
+        return;
+      }
+    }
+
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       onSubmit();
@@ -428,21 +600,89 @@ function PendingPin({ x, y, text, onTextChange, onSubmit, onCancel }: PendingPin
       <div className="w-7 h-7 rounded-full bg-accent border-2 border-white shadow-md flex items-center justify-center -translate-x-1/2 -translate-y-1/2">
         <Icon name="message-circle" size={12} className="text-white" />
       </div>
+
       {/* Input popover */}
-      <div className="absolute top-3 left-4 w-64 bg-bg rounded-lg shadow-card-hover border border-border">
-        <div className="p-3">
+      <div className="absolute top-3 left-4 w-72 bg-bg rounded-lg shadow-card-hover border border-border">
+        {/* Shortcode suggestions */}
+        {suggestions.length > 0 && (
+          <div className="border-b border-border px-2 py-1.5 flex flex-wrap gap-0.5">
+            {suggestions.map((s, i) => (
+              <button
+                key={s.key}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  insertEmoji(s.emoji, shortcodeStart ?? undefined);
+                }}
+                title={`:${s.key}:`}
+                className={cn(
+                  "flex items-center gap-1 text-xs px-1.5 py-0.5 rounded transition-colors",
+                  i === activeSuggestion
+                    ? "bg-accent/10 text-accent"
+                    : "hover:bg-bg-secondary text-text-secondary"
+                )}
+              >
+                <span className="text-base leading-none">{s.emoji}</span>
+                <span className="text-text-tertiary">{s.key}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="p-3 relative">
           <textarea
             ref={inputRef}
             value={text}
-            onChange={(e) => onTextChange(e.target.value)}
+            onChange={handleTextChange}
             onKeyDown={handleKeyDown}
-            placeholder="Add a comment… (Enter to post)"
+            placeholder="Add a comment… (Enter to post, :emoji: for emojis)"
             rows={3}
             className="w-full text-sm text-text-primary placeholder:text-text-tertiary resize-none outline-none leading-relaxed"
           />
         </div>
+
         <div className="border-t border-border px-3 py-2 flex items-center justify-between gap-2">
-          <span className="text-xs text-text-tertiary">Shift+Enter for newline</span>
+          <div className="flex items-center gap-1.5" ref={pickerRef}>
+            <div className="relative">
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setShowEmojiPicker((v) => !v);
+                }}
+                title="Insert emoji"
+                className="text-base leading-none w-6 h-6 flex items-center justify-center rounded hover:bg-bg-secondary transition-colors"
+              >
+                😊
+              </button>
+              {showEmojiPicker && (
+                <div className="absolute bottom-full left-0 mb-1 w-64 bg-bg rounded-lg shadow-card-hover border border-border z-40 overflow-hidden">
+                  <div className="max-h-52 overflow-y-auto p-2 space-y-2">
+                    {EMOJI_CATEGORIES.map((cat) => (
+                      <div key={cat.name}>
+                        <p className="text-[10px] font-medium text-text-tertiary uppercase tracking-wide px-1 mb-1">
+                          {cat.name}
+                        </p>
+                        <div className="flex flex-wrap gap-0.5">
+                          {cat.emojis.map((emoji) => (
+                            <button
+                              key={emoji}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                insertEmoji(emoji);
+                              }}
+                              className="text-xl w-8 h-8 flex items-center justify-center rounded hover:bg-bg-secondary transition-colors"
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <span className="text-xs text-text-tertiary">Shift+Enter for newline</span>
+          </div>
           <div className="flex gap-1.5">
             <button
               onClick={onCancel}
