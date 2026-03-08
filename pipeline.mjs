@@ -388,7 +388,7 @@ async function checkMergedPRs() {
 }
 
 async function poll() {
-  console.log(`\n[${new Date().toISOString()}] Polling...`);
+  console.log(`\n[${new Date().toLocaleTimeString()}] Polling...`);
 
   // Check for merged PRs and update Notion to "Done"
   try {
