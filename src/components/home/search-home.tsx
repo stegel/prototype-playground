@@ -10,9 +10,10 @@ type FilterMode = "all" | "user" | "project";
 
 interface SearchHomeProps {
   designerGroups: DesignerGroup[];
+  currentDesigner?: string | null;
 }
 
-export function SearchHome({ designerGroups }: SearchHomeProps) {
+export function SearchHome({ designerGroups, currentDesigner }: SearchHomeProps) {
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState<FilterMode>("all");
 
@@ -77,6 +78,15 @@ export function SearchHome({ designerGroups }: SearchHomeProps) {
       });
   }, [query, mode, designerGroups]);
 
+  const sorted = useMemo(() => {
+    if (!currentDesigner) return filtered;
+    return [...filtered].sort((a, b) => {
+      if (a.designer === currentDesigner) return -1;
+      if (b.designer === currentDesigner) return 1;
+      return 0;
+    });
+  }, [filtered, currentDesigner]);
+
   const tabs: { label: string; value: FilterMode }[] = [
     { label: "All", value: "all" },
     { label: "By user", value: "user" },
@@ -122,10 +132,14 @@ export function SearchHome({ designerGroups }: SearchHomeProps) {
         </div>
       </div>
 
-      {filtered.length > 0 ? (
+      {sorted.length > 0 ? (
         <div className="space-y-12">
-          {filtered.map((group) => (
-            <DesignerSection key={group.designer} group={group} />
+          {sorted.map((group) => (
+            <DesignerSection
+              key={group.designer}
+              group={group}
+              isCurrentUser={group.designer === currentDesigner}
+            />
           ))}
         </div>
       ) : (
