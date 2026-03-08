@@ -5,6 +5,9 @@ on:
     types: [prototypes-updated]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   update-submodule:
     runs-on: ubuntu-latest
