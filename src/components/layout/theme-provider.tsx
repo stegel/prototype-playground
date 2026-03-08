@@ -28,14 +28,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       : "light";
     const initial = stored ?? preferred;
     setTheme(initial);
-    document.documentElement.classList.toggle("dark", initial === "dark");
+    document.documentElement.setAttribute("data-theme", initial);
   }, []);
 
   const toggle = () => {
     setTheme((prev) => {
       const next = prev === "light" ? "dark" : "light";
       localStorage.setItem("theme", next);
-      document.documentElement.classList.toggle("dark", next === "dark");
+      document.documentElement.setAttribute("data-theme", next);
       return next;
     });
   };

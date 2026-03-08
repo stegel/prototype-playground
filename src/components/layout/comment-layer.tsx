@@ -269,7 +269,7 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
         {/* Content with overlay */}
         <div
           ref={contentRef}
-          data-no-dark
+          data-theme="light"
           className={cn("flex-1 relative overflow-auto bg-bg", commentMode && "cursor-crosshair")}
           onClick={handleContentClick}
         >
