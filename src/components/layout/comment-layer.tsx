@@ -44,7 +44,11 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
   const [pendingPin, setPendingPin] = useState<{ x: number; y: number } | null>(null);
   const [pendingText, setPendingText] = useState("");
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editDescription, setEditDescription] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const editModalRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
     fetch(`/api/comments?designer=${encodeURIComponent(designer)}&slug=${encodeURIComponent(slug)}`)
@@ -168,6 +172,31 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
     }).catch(() => {});
   };
 
+  const openEditModal = () => {
+    setEditDescription(meta?.description ?? "");
+    setEditModalOpen(true);
+    editModalRef.current?.showModal();
+  };
+
+  const closeEditModal = () => {
+    setEditModalOpen(false);
+    editModalRef.current?.close();
+  };
+
+  const saveDescription = async () => {
+    setEditSaving(true);
+    try {
+      await fetch(`/api/prototypes/${encodeURIComponent(designer)}/${encodeURIComponent(slug)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description: editDescription }),
+      });
+      closeEditModal();
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
   const unresolvedCount = comments.filter((c) => !c.resolved).length;
 
   return (
@@ -203,6 +232,14 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
             </Badge>
           ))}
           <div className="h-4 w-px bg-border mx-1" />
+          {/* Edit prototype */}
+          <button
+            onClick={openEditModal}
+            className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium bg-bg-secondary text-text-secondary border border-border hover:bg-bg-tertiary hover:text-text-primary transition-colors"
+          >
+            <Icon name="edit" size={14} />
+            <span>Edit prototype</span>
+          </button>
           {/* New project */}
           <Link
             href="/prototypes/claude-bot/create-new-project"
@@ -324,6 +361,42 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
           />
         )}
       </div>
+
+      {/* Edit prototype modal */}
+      <dialog ref={editModalRef} className="modal" onClose={closeEditModal}>
+        <div className="modal-box bg-bg border border-border">
+          <h3 className="text-base font-semibold text-text-primary mb-1">Edit prototype</h3>
+          <p className="text-xs text-text-tertiary mb-4">{meta?.title ?? slug}</p>
+          <label className="block text-sm font-medium text-text-secondary mb-1.5">
+            Description
+          </label>
+          <textarea
+            className="textarea textarea-bordered w-full text-sm text-text-primary bg-bg-secondary border-border resize-none"
+            rows={4}
+            value={editDescription}
+            onChange={(e) => setEditDescription(e.target.value)}
+            placeholder="Describe what this prototype demonstrates…"
+          />
+          <div className="modal-action mt-4">
+            <button
+              onClick={closeEditModal}
+              className="btn btn-ghost btn-sm text-text-secondary"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={saveDescription}
+              disabled={editSaving}
+              className="btn btn-sm bg-accent text-white hover:bg-accent-hover border-0"
+            >
+              {editSaving ? "Saving…" : "Save"}
+            </button>
+          </div>
+        </div>
+        <form method="dialog" className="modal-backdrop">
+          <button onClick={closeEditModal}>close</button>
+        </form>
+      </dialog>
     </div>
   );
 }
