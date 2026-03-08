@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 /**
- * Notion → Claude Code → Gitea PR Pipeline
+ * Notion → Claude Code → GitHub PR Pipeline
  *
  * Polls Notion for feature requests with State="Ready", runs Claude Code
- * to implement each one, then creates a PR on Gitea for review.
+ * to implement each one, then creates a PR on GitHub for review.
  *
  * Usage:
  *   npm run pipeline          # single poll
@@ -13,10 +13,9 @@
  * Required env vars (put in .env):
  *   NOTION_TOKEN        - Notion internal integration token
  *   NOTION_DATABASE_ID  - Feature Requests database ID
- *   GITEA_URL           - Gitea base URL (e.g. https://git.ajsiegel.com)
- *   GITEA_TOKEN         - Gitea API token
- *   GITEA_OWNER         - Gitea repo owner (e.g. stegel)
- *   GITEA_REPO          - Gitea repo name (e.g. prototype-playground)
+ *   GITHUB_TOKEN        - GitHub personal access token
+ *   GITHUB_OWNER        - GitHub repo owner (e.g. stegel)
+ *   GITHUB_REPO         - GitHub repo name (e.g. prototype-playground)
  */
 
 import { execSync } from "node:child_process";
@@ -40,10 +39,9 @@ if (fs.existsSync(envPath)) {
 // ── Config ──────────────────────────────────────────────────────────────────
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID;
-const GITEA_URL = process.env.GITEA_URL;
-const GITEA_TOKEN = process.env.GITEA_TOKEN;
-const GITEA_OWNER = process.env.GITEA_OWNER;
-const GITEA_REPO = process.env.GITEA_REPO;
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const GITHUB_OWNER = process.env.GITHUB_OWNER;
+const GITHUB_REPO = process.env.GITHUB_REPO;
 const CLAUDE_BIN = process.env.CLAUDE_BIN || "claude";
 const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL || "300", 10); // seconds
 const PUSHOVER_USER = process.env.PUSHOVER_USER;
@@ -53,10 +51,9 @@ const PROJECT_DIR = process.cwd();
 const required = {
   NOTION_TOKEN,
   NOTION_DATABASE_ID,
-  GITEA_URL,
-  GITEA_TOKEN,
-  GITEA_OWNER,
-  GITEA_REPO,
+  GITHUB_TOKEN,
+  GITHUB_OWNER,
+  GITHUB_REPO,
 };
 const missing = Object.entries(required)
   .filter(([, v]) => !v)
@@ -142,19 +139,20 @@ function git(...args) {
   }).trim();
 }
 
-async function giteaApi(method, endpoint, body) {
-  const url = `${GITEA_URL}/api/v1${endpoint}`;
+async function githubApi(method, endpoint, body) {
+  const url = `https://api.github.com${endpoint}`;
   const res = await fetch(url, {
     method,
     headers: {
-      Authorization: `token ${GITEA_TOKEN}`,
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      Accept: "application/vnd.github+json",
       "Content-Type": "application/json",
     },
     body: body ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Gitea API ${method} ${endpoint} failed (${res.status}): ${text}`);
+    throw new Error(`GitHub API ${method} ${endpoint} failed (${res.status}): ${text}`);
   }
   return res.json();
 }
@@ -273,12 +271,12 @@ async function implementFeature(page) {
   git("push", "origin", branchName, "--force");
   console.log(`  Pushed branch: ${branchName}`);
 
-  // 8. Create PR on Gitea (or find existing one)
+  // 8. Create PR on GitHub (or find existing one)
   let pr;
   try {
-    pr = await giteaApi(
+    pr = await githubApi(
       "POST",
-      `/repos/${GITEA_OWNER}/${GITEA_REPO}/pulls`,
+      `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/pulls`,
       {
         title: `[Feature] ${title}`,
         body: [
@@ -300,11 +298,11 @@ async function implementFeature(page) {
     );
     console.log(`  Created PR #${pr.number}: ${pr.html_url}`);
   } catch (err) {
-    if (err.message.includes("409")) {
+    if (err.message.includes("422")) {
       // PR already exists, find it
-      const pulls = await giteaApi(
+      const pulls = await githubApi(
         "GET",
-        `/repos/${GITEA_OWNER}/${GITEA_REPO}/pulls?state=open&head=${branchName}`
+        `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/pulls?state=open&head=${GITHUB_OWNER}:${branchName}`
       );
       pr = pulls[0];
       console.log(`  PR already exists #${pr.number}: ${pr.html_url}`);
@@ -368,13 +366,13 @@ async function checkMergedPRs() {
 
   if (!response.results.length) return;
 
-  // Get all closed (merged) PRs from Gitea
-  const closedPRs = await giteaApi(
+  // Get all closed (merged) PRs from GitHub
+  const closedPRs = await githubApi(
     "GET",
-    `/repos/${GITEA_OWNER}/${GITEA_REPO}/pulls?state=closed&sort=updated&limit=50`
+    `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/pulls?state=closed&sort=updated&direction=desc&per_page=50`
   );
   const mergedBranches = new Set(
-    closedPRs.filter((pr) => pr.merged).map((pr) => pr.head.ref)
+    closedPRs.filter((pr) => pr.merged_at).map((pr) => pr.head.ref)
   );
 
   for (const page of response.results) {
