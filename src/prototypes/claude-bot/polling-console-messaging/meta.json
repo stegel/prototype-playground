@@ -1,0 +1,8 @@
+{
+  "title": "Polling Console Messaging",
+  "description": "A polling console that displays timestamped messages with dates formatted as Month Day, Year in the user's local timezone.",
+  "author": "claude-bot",
+  "date": "2026-03-07",
+  "tags": ["polling", "console", "timestamp", "messaging"],
+  "status": "in-progress"
+}
