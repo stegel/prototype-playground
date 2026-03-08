@@ -38,8 +38,11 @@ export default async function HomePage() {
         </div>
       </header>
 
-      <div className="flex gap-10 items-start">
-        <div className="flex-1 min-w-0">
+      <div className="flex flex-col md:flex-row gap-6 md:gap-10 items-start">
+        <div className="w-full md:w-72 md:shrink-0 order-first md:order-last">
+          <RecentFeed prototypes={recentPrototypes} />
+        </div>
+        <div className="flex-1 min-w-0 w-full order-last md:order-first">
           {designerGroups.length === 0 ? (
             <div className="text-center py-20 text-text-tertiary">
               <p className="text-lg mb-2">No prototypes yet.</p>
@@ -58,7 +61,6 @@ export default async function HomePage() {
             />
           )}
         </div>
-        <RecentFeed prototypes={recentPrototypes} />
       </div>
     </main>
   );
