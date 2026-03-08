@@ -171,7 +171,7 @@ async function queryReadyFeatures() {
   const response = await notionApi("POST", `/databases/${NOTION_DATABASE_ID}/query`, {
     filter: {
       and: [
-        { property: "State", status: { equals: "Ready" } },
+        { property: "State", status: { equals: "Read for dev" } },
         { property: "Project", multi_select: { contains: "Prototype Playground" } },
       ],
     },
