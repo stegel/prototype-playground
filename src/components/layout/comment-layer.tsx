@@ -10,6 +10,13 @@ import { DarkModeToggle } from "@/components/layout/dark-mode-toggle";
 import type { PrototypeMeta, CommentAuthor } from "@/lib/types";
 import { cn, displayName, formatDate } from "@/lib/utils";
 
+interface Reply {
+  id: string;
+  text: string;
+  createdAt: string;
+  author?: CommentAuthor;
+}
+
 interface Comment {
   id: string;
   x: number; // percentage of content area width
@@ -18,6 +25,7 @@ interface Comment {
   createdAt: string;
   resolved: boolean;
   author?: CommentAuthor;
+  replies?: Reply[];
 }
 
 interface CommentLayerProps {
@@ -121,6 +129,42 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ designer, slug, id }),
+    }).catch(() => {});
+  };
+
+  const replyToComment = (commentId: string, text: string) => {
+    const reply: Reply = {
+      id: crypto.randomUUID(),
+      text,
+      createdAt: new Date().toISOString(),
+      author: session?.user
+        ? { name: session.user.name ?? null, image: session.user.image ?? null }
+        : undefined,
+    };
+    setComments((prev) =>
+      prev.map((c) =>
+        c.id === commentId ? { ...c, replies: [...(c.replies ?? []), reply] } : c
+      )
+    );
+    fetch("/api/comments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ designer, slug, comment: reply, parentId: commentId }),
+    }).catch(() => {});
+  };
+
+  const deleteReply = (commentId: string, replyId: string) => {
+    setComments((prev) =>
+      prev.map((c) =>
+        c.id === commentId
+          ? { ...c, replies: (c.replies ?? []).filter((r) => r.id !== replyId) }
+          : c
+      )
+    );
+    fetch("/api/comments", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ designer, slug, id: replyId, parentId: commentId }),
     }).catch(() => {});
   };
 
@@ -243,6 +287,8 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
               }
               onResolve={() => resolveComment(comment.id)}
               onDelete={() => deleteComment(comment.id)}
+              onReply={(text) => replyToComment(comment.id, text)}
+              onDeleteReply={(replyId) => deleteReply(comment.id, replyId)}
             />
           ))}
 
@@ -291,10 +337,15 @@ interface CommentPinProps {
   onActivate: () => void;
   onResolve: () => void;
   onDelete: () => void;
+  onReply: (text: string) => void;
+  onDeleteReply: (replyId: string) => void;
 }
 
-function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete }: CommentPinProps) {
+function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete, onReply, onDeleteReply }: CommentPinProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const [replyOpen, setReplyOpen] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const replyInputRef = useRef<HTMLTextAreaElement>(null);
 
   // Close popover on outside click
   useEffect(() => {
@@ -307,6 +358,26 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete 
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [isActive, onActivate]);
+
+  // Focus reply textarea when opened
+  useEffect(() => {
+    if (replyOpen) replyInputRef.current?.focus();
+  }, [replyOpen]);
+
+  // Reset reply state when popover closes
+  useEffect(() => {
+    if (!isActive) {
+      setReplyOpen(false);
+      setReplyText("");
+    }
+  }, [isActive]);
+
+  const submitReply = () => {
+    if (!replyText.trim()) return;
+    onReply(replyText.trim());
+    setReplyText("");
+    setReplyOpen(false);
+  };
 
   return (
     <div
@@ -336,9 +407,10 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete 
       {isActive && (
         <div
           data-comment-ui
-          className="absolute top-3 left-4 z-30 w-64 bg-bg rounded-lg shadow-card-hover border border-border"
+          className="absolute top-3 left-4 z-30 w-72 bg-bg rounded-lg shadow-card-hover border border-border"
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Original comment */}
           <div className="p-3">
             {comment.author?.name && (
               <div className="flex items-center gap-1.5 mb-1.5">
@@ -362,7 +434,94 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete 
               })}
             </p>
           </div>
+
+          {/* Replies */}
+          {comment.replies && comment.replies.length > 0 && (
+            <div className="border-t border-border">
+              {comment.replies.map((reply) => (
+                <div key={reply.id} className="px-3 py-2 flex items-start gap-2 group">
+                  <div className="shrink-0 mt-0.5">
+                    {reply.author?.image ? (
+                      <img src={reply.author.image} alt="" className="w-4 h-4 rounded-full" referrerPolicy="no-referrer" />
+                    ) : (
+                      <div className="w-4 h-4 rounded-full bg-bg-tertiary flex items-center justify-center text-[8px] font-bold text-text-tertiary">
+                        {reply.author?.name?.[0]?.toUpperCase() ?? "?"}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    {reply.author?.name && (
+                      <span className="text-xs font-medium text-text-secondary">{reply.author.name} </span>
+                    )}
+                    <span className="text-xs text-text-primary leading-relaxed">{reply.text}</span>
+                    <p className="text-[10px] text-text-tertiary mt-0.5">
+                      {new Date(reply.createdAt).toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => onDeleteReply(reply.id)}
+                    className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-text-tertiary hover:text-red-600 transition-all"
+                    title="Delete reply"
+                  >
+                    <Icon name="trash" size={10} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Reply input */}
+          {replyOpen && (
+            <div className="border-t border-border p-3">
+              <textarea
+                ref={replyInputRef}
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submitReply(); }
+                  if (e.key === "Escape") { setReplyOpen(false); setReplyText(""); }
+                }}
+                placeholder="Reply… (Enter to post)"
+                rows={2}
+                className="w-full text-sm text-text-primary placeholder:text-text-tertiary resize-none outline-none leading-relaxed"
+              />
+              <div className="flex justify-end gap-1.5 mt-1.5">
+                <button
+                  onClick={() => { setReplyOpen(false); setReplyText(""); }}
+                  className="text-xs font-medium px-2 h-6 rounded text-text-secondary hover:bg-bg-secondary transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={submitReply}
+                  disabled={!replyText.trim()}
+                  className="text-xs font-medium px-2 h-6 rounded bg-accent text-white disabled:opacity-40 hover:bg-accent-hover transition-colors"
+                >
+                  Reply
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Actions */}
           <div className="border-t border-border px-3 py-2 flex items-center gap-2">
+            <button
+              onClick={() => setReplyOpen((r) => !r)}
+              className={cn(
+                "flex items-center gap-1 text-xs font-medium px-2 h-6 rounded transition-colors",
+                replyOpen
+                  ? "bg-accent/10 text-accent"
+                  : "text-text-secondary hover:bg-bg-secondary"
+              )}
+            >
+              <Icon name="message-circle" size={12} />
+              Reply{comment.replies?.length ? ` · ${comment.replies.length}` : ""}
+            </button>
             <button
               onClick={onResolve}
               className={cn(
@@ -846,6 +1005,12 @@ function SidebarItem({ comment, index, isActive, onActivate, onResolve, onDelete
               minute: "2-digit",
             })}
           </p>
+          {comment.replies && comment.replies.length > 0 && (
+            <p className="text-xs text-text-tertiary mt-0.5 flex items-center gap-1">
+              <Icon name="message-circle" size={10} />
+              {comment.replies.length} {comment.replies.length === 1 ? "reply" : "replies"}
+            </p>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-1 mt-2 ml-7" onClick={(e) => e.stopPropagation()}>
