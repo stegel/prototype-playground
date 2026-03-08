@@ -210,7 +210,7 @@ async function implementFeature(page) {
 
   // 4. Build the prompt for Claude Code
   const prompt = [
-    `Implement the following feature for the Prototype Playground.`,
+    `Implement the following change to the Prototype Playground application itself.`,
     `Read CLAUDE.md first for project conventions.`,
     ``,
     `## Feature: ${title}`,
@@ -219,15 +219,19 @@ async function implementFeature(page) {
     `## Description`,
     description || "No description provided.",
     ``,
+    `## Important Context`,
+    `This is a change to the parent application — NOT a new prototype.`,
+    `You are modifying the app shell, shared components, layout, homepage,`,
+    `routing, discovery system, styling, or other core application code.`,
+    `Do NOT create anything under src/prototypes/.`,
+    ``,
     `## Instructions`,
-    `1. If this is a new prototype, create it under src/prototypes/claude-bot/${slug}/`,
-    `   with a meta.json and page.tsx following the conventions in CLAUDE.md.`,
-    `2. If this is a change to shared components or the app itself, modify the appropriate files.`,
-    `3. Prefer DaisyUI 5 component classes (btn, card, input, modal, etc.) for new prototypes.`,
+    `1. Modify existing app files (src/app/, src/components/, src/lib/, etc.) as needed.`,
+    `2. Prefer DaisyUI 5 component classes (btn, card, input, modal, etc.).`,
     `   Fall back to shared UI components from @/components/ui only if needed.`,
-    `4. Use Tailwind CSS v4 theme tokens (never raw colors).`,
-    `5. Make the prototype interactive and functional.`,
-    `6. Run npm run build to verify no errors.`,
+    `3. Use Tailwind CSS v4 theme tokens (never raw colors).`,
+    `4. Keep changes minimal and focused on the requested feature.`,
+    `5. Run npm run build to verify no errors.`,
   ].join("\n");
 
   // 5. Run Claude Code
