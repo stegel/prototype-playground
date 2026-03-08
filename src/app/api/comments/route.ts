@@ -7,6 +7,13 @@ interface CommentAuthor {
   image: string | null;
 }
 
+interface Reply {
+  id: string;
+  text: string;
+  createdAt: string;
+  author?: CommentAuthor;
+}
+
 interface Comment {
   id: string;
   x: number;
@@ -15,6 +22,7 @@ interface Comment {
   createdAt: string;
   resolved: boolean;
   author?: CommentAuthor;
+  replies?: Reply[];
 }
 
 function key(designer: string, slug: string) {
@@ -45,10 +53,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Storage not configured" }, { status: 503 });
   }
 
-  const { designer, slug, comment } = (await req.json()) as {
+  const { designer, slug, comment, parentId } = (await req.json()) as {
     designer: string;
     slug: string;
-    comment: Comment;
+    comment: Comment | Reply;
+    parentId?: string;
   };
 
   if (!designer || !slug || !comment) {
@@ -56,15 +65,25 @@ export async function POST(req: NextRequest) {
   }
 
   const session = await auth();
-  const commentWithAuthor: Comment = {
-    ...comment,
-    author: session?.user
-      ? { name: session.user.name ?? null, image: session.user.image ?? null }
-      : undefined,
-  };
+  const author: CommentAuthor | undefined = session?.user
+    ? { name: session.user.name ?? null, image: session.user.image ?? null }
+    : undefined;
 
   const k = key(designer, slug);
   const comments = (await redis.get<Comment[]>(k)) ?? [];
+
+  if (parentId) {
+    // Adding a reply to an existing comment
+    const reply: Reply = { ...(comment as Reply), author };
+    const updated = comments.map((c) =>
+      c.id === parentId ? { ...c, replies: [...(c.replies ?? []), reply] } : c
+    );
+    await redis.set(k, updated);
+    return NextResponse.json(reply, { status: 201 });
+  }
+
+  // Adding a new top-level comment
+  const commentWithAuthor: Comment = { ...(comment as Comment), author };
   comments.push(commentWithAuthor);
   await redis.set(k, comments);
 
@@ -99,14 +118,25 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Storage not configured" }, { status: 503 });
   }
 
-  const { designer, slug, id } = (await req.json()) as {
+  const { designer, slug, id, parentId } = (await req.json()) as {
     designer: string;
     slug: string;
     id: string;
+    parentId?: string;
   };
 
   const k = key(designer, slug);
   const comments = (await redis.get<Comment[]>(k)) ?? [];
+
+  if (parentId) {
+    // Deleting a reply
+    const updated = comments.map((c) =>
+      c.id === parentId ? { ...c, replies: (c.replies ?? []).filter((r) => r.id !== id) } : c
+    );
+    await redis.set(k, updated);
+    return NextResponse.json({ ok: true });
+  }
+
   const filtered = comments.filter((c) => c.id !== id);
   await redis.set(k, filtered);
 
