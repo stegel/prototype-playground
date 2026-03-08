@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { discoverAllPrototypes } from "@/lib/discovery";
+import { discoverAllPrototypes, getRecentPrototypes } from "@/lib/discovery";
 import { SearchHome } from "@/components/home/search-home";
+import { RecentFeed } from "@/components/home/recent-feed";
 import { UserMenu } from "@/components/layout/user-menu";
 import { DarkModeToggle } from "@/components/layout/dark-mode-toggle";
 import { auth } from "@/lib/auth";
 
 export default async function HomePage() {
   const designerGroups = discoverAllPrototypes();
+  const recentPrototypes = getRecentPrototypes(5);
   const session = await auth();
   const currentDesigner = session?.user?.designerFolder ?? null;
 
@@ -36,23 +38,28 @@ export default async function HomePage() {
         </div>
       </header>
 
-      {designerGroups.length === 0 ? (
-        <div className="text-center py-20 text-text-tertiary">
-          <p className="text-lg mb-2">No prototypes yet.</p>
-          <p className="text-sm">
-            Run{" "}
-            <code className="bg-bg-tertiary px-2 py-1 rounded text-text-secondary font-mono">
-              npm run new your-name &quot;My Prototype&quot;
-            </code>{" "}
-            to create your first one.
-          </p>
+      <div className="flex gap-10 items-start">
+        <div className="flex-1 min-w-0">
+          {designerGroups.length === 0 ? (
+            <div className="text-center py-20 text-text-tertiary">
+              <p className="text-lg mb-2">No prototypes yet.</p>
+              <p className="text-sm">
+                Run{" "}
+                <code className="bg-bg-tertiary px-2 py-1 rounded text-text-secondary font-mono">
+                  npm run new your-name &quot;My Prototype&quot;
+                </code>{" "}
+                to create your first one.
+              </p>
+            </div>
+          ) : (
+            <SearchHome
+              designerGroups={designerGroups}
+              currentDesigner={currentDesigner}
+            />
+          )}
         </div>
-      ) : (
-        <SearchHome
-          designerGroups={designerGroups}
-          currentDesigner={currentDesigner}
-        />
-      )}
+        <RecentFeed prototypes={recentPrototypes} />
+      </div>
     </main>
   );
 }
