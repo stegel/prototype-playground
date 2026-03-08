@@ -1,0 +1,3 @@
+[submodule "prototypes-repo"]
+	path = prototypes-repo
+	url = https://github.com/stegel/ex-prototypes.git

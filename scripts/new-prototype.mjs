@@ -14,8 +14,8 @@ if (!designer || !name) {
 }
 
 const slug = name.toLowerCase().replace(/\s+/g, "-");
-const targetDir = path.join(process.cwd(), "src", "prototypes", designer, slug);
-const templateDir = path.join(process.cwd(), "src", "prototypes", "_template");
+const targetDir = path.join(process.cwd(), "prototypes-repo", "src", "prototypes", designer, slug);
+const templateDir = path.join(process.cwd(), "prototypes-repo", "src", "prototypes", "_template");
 
 if (fs.existsSync(targetDir)) {
   console.error(`Prototype already exists at ${targetDir}`);

@@ -1,0 +1,31 @@
+name: Update prototypes submodule
+
+on:
+  repository_dispatch:
+    types: [prototypes-updated]
+  workflow_dispatch:
+
+jobs:
+  update-submodule:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update submodule to latest
+        run: |
+          git submodule update --remote prototypes-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit and push if changed
+        run: |
+          if git diff --quiet; then
+            echo "No submodule changes"
+          else
+            git add prototypes-repo
+            git commit -m "chore: update prototypes submodule"
+            git push
+          fi

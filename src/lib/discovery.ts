@@ -8,7 +8,7 @@ import type {
   DesignerGroup,
 } from "./types";
 
-const PROTOTYPES_DIR = path.join(process.cwd(), "src", "prototypes");
+const PROTOTYPES_DIR = path.join(process.cwd(), "prototypes-repo", "src", "prototypes");
 const EXTERNAL_FILE = path.join(PROTOTYPES_DIR, "_external.json");
 
 function readMeta(dirPath: string): PrototypeMeta | null {
