@@ -29,28 +29,28 @@ interface RecentFeedProps {
 export function RecentFeed({ prototypes }: RecentFeedProps) {
   return (
     <aside className="w-72 shrink-0">
-      <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wide mb-3">
+      <h2 className="text-sm font-semibold text-base-content/60 uppercase tracking-wide mb-3">
         Recently Updated
       </h2>
       <div className="flex flex-col gap-2">
         {prototypes.map((proto) => (
           <div
             key={proto.path}
-            className="flex items-start justify-between gap-2 py-2 border-b border-border last:border-0"
+            className="flex items-start justify-between gap-2 py-2 border-b border-base-300 last:border-0"
           >
             <Link
               href={proto.path}
-              className="text-sm text-text-primary hover:text-accent transition-colors font-medium leading-snug"
+              className="text-sm text-base-content hover:text-primary transition-colors font-medium leading-snug"
             >
               {proto.title}
             </Link>
-            <span className="text-xs text-text-tertiary whitespace-nowrap shrink-0 mt-0.5">
+            <span className="text-xs text-base-content/40 whitespace-nowrap shrink-0 mt-0.5">
               {timeAgo(proto.updatedAt)}
             </span>
           </div>
         ))}
         {prototypes.length === 0 && (
-          <p className="text-sm text-text-tertiary">No prototypes yet.</p>
+          <p className="text-sm text-base-content/40">No prototypes yet.</p>
         )}
       </div>
     </aside>

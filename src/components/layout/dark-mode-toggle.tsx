@@ -22,7 +22,7 @@ export function DarkModeToggle({ className, showSelector = true }: DarkModeToggl
       title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
       className={
         className ??
-        "flex items-center justify-center w-8 h-8 rounded-md text-text-secondary hover:text-text-primary hover:bg-bg-secondary border border-border transition-colors"
+        "flex items-center justify-center w-8 h-8 rounded-md text-base-content/60 hover:text-base-content hover:bg-base-200 border border-base-300 transition-colors"
       }
     >
       <Icon name={theme === "dark" ? "sun" : "moon"} size={15} />

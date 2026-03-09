@@ -202,20 +202,20 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="border-b border-border px-6 py-3 flex items-center gap-4 bg-bg shrink-0">
+      <header className="border-b border-base-300 px-6 py-3 flex items-center gap-4 bg-base-100 shrink-0">
         <Link
           href="/"
-          className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors"
+          className="flex items-center gap-2 text-base-content/60 hover:text-base-content transition-colors"
         >
           <Icon name="arrow-left" size={16} />
           <span className="text-sm">Back</span>
         </Link>
         <div className="h-4 w-px bg-border" />
         <div className="flex-1 min-w-0">
-          <h1 className="text-sm font-medium text-text-primary truncate">
+          <h1 className="text-sm font-medium text-base-content truncate">
             {meta?.title ?? displayName(slug)}
           </h1>
-          <p className="text-xs text-text-tertiary">
+          <p className="text-xs text-base-content/40">
             {displayName(designer)}
             {meta?.date && ` · ${formatDate(meta.date)}`}
           </p>
@@ -235,7 +235,7 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
           {/* Edit prototype */}
           <button
             onClick={openEditModal}
-            className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium bg-bg-secondary text-text-secondary border border-border hover:bg-bg-tertiary hover:text-text-primary transition-colors"
+            className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium bg-base-200 text-base-content/60 border border-base-300 hover:bg-base-300 hover:text-base-content transition-colors"
           >
             <Icon name="edit" size={14} />
             <span>Edit prototype</span>
@@ -243,7 +243,7 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
           {/* New project */}
           <Link
             href="/prototypes/claude-bot/create-new-project"
-            className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium bg-bg-secondary text-text-secondary border border-border hover:bg-bg-tertiary hover:text-text-primary transition-colors"
+            className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium bg-base-200 text-base-content/60 border border-base-300 hover:bg-base-300 hover:text-base-content transition-colors"
           >
             <Icon name="plus" size={14} />
             <span>New project</span>
@@ -251,7 +251,7 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
           {/* Copy URL */}
           <button
             onClick={copyUrl}
-            className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium bg-bg-secondary text-text-secondary border border-border hover:bg-bg-tertiary hover:text-text-primary transition-colors"
+            className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium bg-base-200 text-base-content/60 border border-base-300 hover:bg-base-300 hover:text-base-content transition-colors"
           >
             <Icon name={copied ? "check" : "link"} size={14} />
             <span>{copied ? "Copied!" : "Copy URL"}</span>
@@ -264,8 +264,8 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
             className={cn(
               "flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium transition-colors",
               commentMode
-                ? "bg-accent text-white"
-                : "bg-bg-secondary text-text-secondary border border-border hover:bg-bg-tertiary hover:text-text-primary"
+                ? "bg-primary text-primary-content"
+                : "bg-base-200 text-base-content/60 border border-base-300 hover:bg-base-300 hover:text-base-content"
             )}
           >
             <Icon name="message-circle" size={14} />
@@ -278,8 +278,8 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
             className={cn(
               "relative flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium transition-colors",
               sidebarOpen
-                ? "bg-accent text-white"
-                : "bg-bg-secondary text-text-secondary border border-border hover:bg-bg-tertiary hover:text-text-primary"
+                ? "bg-primary text-primary-content"
+                : "bg-base-200 text-base-content/60 border border-base-300 hover:bg-base-300 hover:text-base-content"
             )}
           >
             <Icon name="panel-right" size={14} />
@@ -288,7 +288,7 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
               <span
                 className={cn(
                   "ml-0.5 min-w-[18px] h-[18px] rounded-full text-[10px] font-bold flex items-center justify-center px-1",
-                  sidebarOpen ? "bg-white/30 text-white" : "bg-accent text-white"
+                  sidebarOpen ? "bg-white/30 text-white" : "bg-primary text-primary-content"
                 )}
               >
                 {unresolvedCount}
@@ -306,8 +306,7 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
         {/* Content with overlay */}
         <div
           ref={contentRef}
-          data-theme="light"
-          className={cn("flex-1 relative overflow-auto bg-bg", commentMode && "cursor-crosshair")}
+          className={cn("flex-1 relative overflow-auto bg-base-100", commentMode && "cursor-crosshair")}
           onClick={handleContentClick}
         >
           {children}
@@ -364,14 +363,14 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
 
       {/* Edit prototype modal */}
       <dialog ref={editModalRef} className="modal" onClose={closeEditModal}>
-        <div className="modal-box bg-bg border border-border">
-          <h3 className="text-base font-semibold text-text-primary mb-1">Edit prototype</h3>
-          <p className="text-xs text-text-tertiary mb-4">{meta?.title ?? slug}</p>
-          <label className="block text-sm font-medium text-text-secondary mb-1.5">
+        <div className="modal-box bg-base-100 border border-base-300">
+          <h3 className="text-base font-semibold text-base-content mb-1">Edit prototype</h3>
+          <p className="text-xs text-base-content/40 mb-4">{meta?.title ?? slug}</p>
+          <label className="block text-sm font-medium text-base-content/60 mb-1.5">
             Description
           </label>
           <textarea
-            className="textarea textarea-bordered w-full text-sm text-text-primary bg-bg-secondary border-border resize-none"
+            className="textarea textarea-bordered w-full text-sm text-base-content bg-base-200 border-base-300 resize-none"
             rows={4}
             value={editDescription}
             onChange={(e) => setEditDescription(e.target.value)}
@@ -380,14 +379,14 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
           <div className="modal-action mt-4">
             <button
               onClick={closeEditModal}
-              className="btn btn-ghost btn-sm text-text-secondary"
+              className="btn btn-ghost btn-sm text-base-content/60"
             >
               Cancel
             </button>
             <button
               onClick={saveDescription}
               disabled={editSaving}
-              className="btn btn-sm bg-accent text-white hover:bg-accent-hover border-0"
+              className="btn btn-sm bg-primary text-primary-content hover:bg-primary/80 border-0"
             >
               {editSaving ? "Saving…" : "Save"}
             </button>
@@ -541,8 +540,8 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete,
         className={cn(
           "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-md border-2 border-white transition-transform hover:scale-110 -translate-x-1/2 -translate-y-1/2",
           comment.resolved
-            ? "bg-bg-tertiary text-text-tertiary"
-            : "bg-accent text-white"
+            ? "bg-base-300 text-base-content/40"
+            : "bg-primary text-primary-content"
         )}
       >
         {index}
@@ -552,7 +551,7 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete,
       {isActive && (
         <div
           data-comment-ui
-          className="absolute top-3 left-4 z-30 w-72 bg-bg rounded-lg shadow-card-hover border border-border"
+          className="absolute top-3 left-4 z-30 w-72 bg-base-100 rounded-lg shadow-md border border-base-300"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Original comment */}
@@ -562,15 +561,15 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete,
                 {comment.author.image ? (
                   <img src={comment.author.image} alt="" className="w-4 h-4 rounded-full" referrerPolicy="no-referrer" />
                 ) : (
-                  <div className="w-4 h-4 rounded-full bg-accent/20 text-accent text-[8px] font-bold flex items-center justify-center">
+                  <div className="w-4 h-4 rounded-full bg-primary/20 text-primary text-[8px] font-bold flex items-center justify-center">
                     {comment.author.name[0]?.toUpperCase()}
                   </div>
                 )}
-                <span className="text-xs font-medium text-text-secondary">{comment.author.name}</span>
+                <span className="text-xs font-medium text-base-content/60">{comment.author.name}</span>
               </div>
             )}
-            <p className="text-sm text-text-primary leading-relaxed">{comment.text}</p>
-            <p className="text-xs text-text-tertiary mt-1.5">
+            <p className="text-sm text-base-content leading-relaxed">{comment.text}</p>
+            <p className="text-xs text-base-content/40 mt-1.5">
               {new Date(comment.createdAt).toLocaleDateString(undefined, {
                 month: "short",
                 day: "numeric",
@@ -583,24 +582,24 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete,
 
           {/* Replies */}
           {comment.replies && comment.replies.length > 0 && (
-            <div className="border-t border-border">
+            <div className="border-t border-base-300">
               {comment.replies.map((reply) => (
                 <div key={reply.id} className="px-3 py-2 flex items-start gap-2 group">
                   <div className="shrink-0 mt-0.5">
                     {reply.author?.image ? (
                       <img src={reply.author.image} alt="" className="w-4 h-4 rounded-full" referrerPolicy="no-referrer" />
                     ) : (
-                      <div className="w-4 h-4 rounded-full bg-bg-tertiary flex items-center justify-center text-[8px] font-bold text-text-tertiary">
+                      <div className="w-4 h-4 rounded-full bg-base-300 flex items-center justify-center text-[8px] font-bold text-base-content/40">
                         {reply.author?.name?.[0]?.toUpperCase() ?? "?"}
                       </div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     {reply.author?.name && (
-                      <span className="text-xs font-medium text-text-secondary">{reply.author.name} </span>
+                      <span className="text-xs font-medium text-base-content/60">{reply.author.name} </span>
                     )}
-                    <span className="text-xs text-text-primary leading-relaxed">{reply.text}</span>
-                    <p className="text-[10px] text-text-tertiary mt-0.5">
+                    <span className="text-xs text-base-content leading-relaxed">{reply.text}</span>
+                    <p className="text-[10px] text-base-content/40 mt-0.5">
                       {new Date(reply.createdAt).toLocaleDateString(undefined, {
                         month: "short",
                         day: "numeric",
@@ -612,7 +611,7 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete,
                   </div>
                   <button
                     onClick={() => onDeleteReply(reply.id)}
-                    className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-text-tertiary hover:text-red-600 transition-all"
+                    className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-base-content/40 hover:text-red-600 transition-all"
                     title="Delete reply"
                   >
                     <Icon name="trash" size={10} />
@@ -624,10 +623,10 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete,
 
           {/* Reply input */}
           {replyOpen && (
-            <div className="border-t border-border p-3">
+            <div className="border-t border-base-300 p-3">
               {/* Shortcode suggestions */}
               {replySuggestions.length > 0 && (
-                <div className="mb-1.5 flex flex-wrap gap-0.5 bg-bg-secondary rounded p-1">
+                <div className="mb-1.5 flex flex-wrap gap-0.5 bg-base-200 rounded p-1">
                   {replySuggestions.map((s, i) => (
                     <button
                       key={s.key}
@@ -639,12 +638,12 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete,
                       className={cn(
                         "flex items-center gap-1 text-xs px-1.5 py-0.5 rounded transition-colors",
                         i === replyActiveSuggestion
-                          ? "bg-accent text-white"
-                          : "hover:bg-bg-secondary text-text-secondary"
+                          ? "bg-primary text-primary-content"
+                          : "hover:bg-base-200 text-base-content/60"
                       )}
                     >
                       <span className="text-base leading-none">{s.emoji}</span>
-                      <span className="text-text-tertiary">{s.key}</span>
+                      <span className="text-base-content/40">{s.key}</span>
                     </button>
                   ))}
                 </div>
@@ -656,7 +655,7 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete,
                 onKeyDown={handleReplyKeyDown}
                 placeholder="Reply… (Enter to post, :emoji: for emojis)"
                 rows={2}
-                className="w-full text-sm text-text-primary placeholder:text-text-tertiary resize-none outline-none leading-relaxed"
+                className="w-full text-sm text-base-content placeholder:text-base-content/40 resize-none outline-none leading-relaxed"
               />
               <div className="flex items-center justify-between mt-1.5">
                 <div className="relative" ref={replyPickerRef}>
@@ -666,16 +665,16 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete,
                       setShowReplyEmojiPicker((v) => !v);
                     }}
                     title="Insert emoji"
-                    className="text-base leading-none w-6 h-6 flex items-center justify-center rounded hover:bg-bg-secondary transition-colors"
+                    className="text-base leading-none w-6 h-6 flex items-center justify-center rounded hover:bg-base-200 transition-colors"
                   >
                     😊
                   </button>
                   {showReplyEmojiPicker && (
-                    <div className="absolute bottom-full left-0 mb-1 w-64 bg-bg rounded-lg shadow-card-hover border border-border z-40 overflow-hidden">
+                    <div className="absolute bottom-full left-0 mb-1 w-64 bg-base-100 rounded-lg shadow-md border border-base-300 z-40 overflow-hidden">
                       <div className="max-h-52 overflow-y-auto p-2 space-y-2">
                         {EMOJI_CATEGORIES.map((cat) => (
                           <div key={cat.name}>
-                            <p className="text-[10px] font-semibold text-text-tertiary uppercase tracking-wide mb-1 px-1">
+                            <p className="text-[10px] font-semibold text-base-content/40 uppercase tracking-wide mb-1 px-1">
                               {cat.name}
                             </p>
                             <div className="flex flex-wrap gap-0.5">
@@ -686,7 +685,7 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete,
                                     e.preventDefault();
                                     insertReplyEmoji(emoji);
                                   }}
-                                  className="text-xl w-8 h-8 flex items-center justify-center rounded hover:bg-bg-secondary transition-colors"
+                                  className="text-xl w-8 h-8 flex items-center justify-center rounded hover:bg-base-200 transition-colors"
                                 >
                                   {emoji}
                                 </button>
@@ -701,14 +700,14 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete,
                 <div className="flex gap-1.5">
                   <button
                     onClick={() => { setReplyOpen(false); setReplyText(""); }}
-                    className="text-xs font-medium px-2 h-6 rounded text-text-secondary hover:bg-bg-secondary transition-colors"
+                    className="text-xs font-medium px-2 h-6 rounded text-base-content/60 hover:bg-base-200 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={submitReply}
                     disabled={!replyText.trim()}
-                    className="text-xs font-medium px-2 h-6 rounded bg-accent text-white disabled:opacity-40 hover:bg-accent-hover transition-colors"
+                    className="text-xs font-medium px-2 h-6 rounded bg-primary text-primary-content disabled:opacity-40 hover:bg-primary/80 transition-colors"
                   >
                     Reply
                   </button>
@@ -718,14 +717,14 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete,
           )}
 
           {/* Actions */}
-          <div className="border-t border-border px-3 py-2 flex items-center gap-2">
+          <div className="border-t border-base-300 px-3 py-2 flex items-center gap-2">
             <button
               onClick={() => setReplyOpen((r) => !r)}
               className={cn(
                 "flex items-center gap-1 text-xs font-medium px-2 h-6 rounded transition-colors",
                 replyOpen
-                  ? "bg-accent/10 text-accent"
-                  : "text-text-secondary hover:bg-bg-secondary"
+                  ? "bg-primary/10 text-primary"
+                  : "text-base-content/60 hover:bg-base-200"
               )}
             >
               <Icon name="message-circle" size={12} />
@@ -736,7 +735,7 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete,
               className={cn(
                 "flex items-center gap-1 text-xs font-medium px-2 h-6 rounded transition-colors",
                 comment.resolved
-                  ? "text-text-secondary hover:text-text-primary hover:bg-bg-secondary"
+                  ? "text-base-content/60 hover:text-base-content hover:bg-base-200"
                   : "text-green-600 hover:bg-green-50"
               )}
             >
@@ -745,7 +744,7 @@ function CommentPin({ comment, index, isActive, onActivate, onResolve, onDelete,
             </button>
             <button
               onClick={onDelete}
-              className="flex items-center gap-1 text-xs font-medium px-2 h-6 rounded text-text-tertiary hover:text-red-600 hover:bg-red-50 transition-colors ml-auto"
+              className="flex items-center gap-1 text-xs font-medium px-2 h-6 rounded text-base-content/40 hover:text-red-600 hover:bg-red-50 transition-colors ml-auto"
             >
               <Icon name="trash" size={12} />
               Delete
@@ -965,15 +964,15 @@ function PendingPin({ x, y, text, onTextChange, onSubmit, onCancel }: PendingPin
       onClick={(e) => e.stopPropagation()}
     >
       {/* Pin */}
-      <div className="w-7 h-7 rounded-full bg-accent border-2 border-white shadow-md flex items-center justify-center -translate-x-1/2 -translate-y-1/2">
+      <div className="w-7 h-7 rounded-full bg-primary border-2 border-white shadow-md flex items-center justify-center -translate-x-1/2 -translate-y-1/2">
         <Icon name="message-circle" size={12} className="text-white" />
       </div>
 
       {/* Input popover */}
-      <div className="absolute top-3 left-4 w-72 bg-bg rounded-lg shadow-card-hover border border-border">
+      <div className="absolute top-3 left-4 w-72 bg-base-100 rounded-lg shadow-md border border-base-300">
         {/* Shortcode suggestions */}
         {suggestions.length > 0 && (
-          <div className="border-b border-border px-2 py-1.5 flex flex-wrap gap-0.5">
+          <div className="border-b border-base-300 px-2 py-1.5 flex flex-wrap gap-0.5">
             {suggestions.map((s, i) => (
               <button
                 key={s.key}
@@ -985,12 +984,12 @@ function PendingPin({ x, y, text, onTextChange, onSubmit, onCancel }: PendingPin
                 className={cn(
                   "flex items-center gap-1 text-xs px-1.5 py-0.5 rounded transition-colors",
                   i === activeSuggestion
-                    ? "bg-accent/10 text-accent"
-                    : "hover:bg-bg-secondary text-text-secondary"
+                    ? "bg-primary/10 text-primary"
+                    : "hover:bg-base-200 text-base-content/60"
                 )}
               >
                 <span className="text-base leading-none">{s.emoji}</span>
-                <span className="text-text-tertiary">{s.key}</span>
+                <span className="text-base-content/40">{s.key}</span>
               </button>
             ))}
           </div>
@@ -1004,11 +1003,11 @@ function PendingPin({ x, y, text, onTextChange, onSubmit, onCancel }: PendingPin
             onKeyDown={handleKeyDown}
             placeholder="Add a comment… (Enter to post, :emoji: for emojis)"
             rows={3}
-            className="w-full text-sm text-text-primary placeholder:text-text-tertiary resize-none outline-none leading-relaxed"
+            className="w-full text-sm text-base-content placeholder:text-base-content/40 resize-none outline-none leading-relaxed"
           />
         </div>
 
-        <div className="border-t border-border px-3 py-2 flex items-center justify-between gap-2">
+        <div className="border-t border-base-300 px-3 py-2 flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5" ref={pickerRef}>
             <div className="relative">
               <button
@@ -1017,16 +1016,16 @@ function PendingPin({ x, y, text, onTextChange, onSubmit, onCancel }: PendingPin
                   setShowEmojiPicker((v) => !v);
                 }}
                 title="Insert emoji"
-                className="text-base leading-none w-6 h-6 flex items-center justify-center rounded hover:bg-bg-secondary transition-colors"
+                className="text-base leading-none w-6 h-6 flex items-center justify-center rounded hover:bg-base-200 transition-colors"
               >
                 😊
               </button>
               {showEmojiPicker && (
-                <div className="absolute bottom-full left-0 mb-1 w-64 bg-bg rounded-lg shadow-card-hover border border-border z-40 overflow-hidden">
+                <div className="absolute bottom-full left-0 mb-1 w-64 bg-base-100 rounded-lg shadow-md border border-base-300 z-40 overflow-hidden">
                   <div className="max-h-52 overflow-y-auto p-2 space-y-2">
                     {EMOJI_CATEGORIES.map((cat) => (
                       <div key={cat.name}>
-                        <p className="text-[10px] font-medium text-text-tertiary uppercase tracking-wide px-1 mb-1">
+                        <p className="text-[10px] font-medium text-base-content/40 uppercase tracking-wide px-1 mb-1">
                           {cat.name}
                         </p>
                         <div className="flex flex-wrap gap-0.5">
@@ -1037,7 +1036,7 @@ function PendingPin({ x, y, text, onTextChange, onSubmit, onCancel }: PendingPin
                                 e.preventDefault();
                                 insertEmoji(emoji);
                               }}
-                              className="text-xl w-8 h-8 flex items-center justify-center rounded hover:bg-bg-secondary transition-colors"
+                              className="text-xl w-8 h-8 flex items-center justify-center rounded hover:bg-base-200 transition-colors"
                             >
                               {emoji}
                             </button>
@@ -1049,19 +1048,19 @@ function PendingPin({ x, y, text, onTextChange, onSubmit, onCancel }: PendingPin
                 </div>
               )}
             </div>
-            <span className="text-xs text-text-tertiary">Shift+Enter for newline</span>
+            <span className="text-xs text-base-content/40">Shift+Enter for newline</span>
           </div>
           <div className="flex gap-1.5">
             <button
               onClick={onCancel}
-              className="text-xs font-medium px-2 h-6 rounded text-text-secondary hover:bg-bg-secondary transition-colors"
+              className="text-xs font-medium px-2 h-6 rounded text-base-content/60 hover:bg-base-200 transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={onSubmit}
               disabled={!text.trim()}
-              className="text-xs font-medium px-2 h-6 rounded bg-accent text-white disabled:opacity-40 hover:bg-accent-hover transition-colors"
+              className="text-xs font-medium px-2 h-6 rounded bg-primary text-primary-content disabled:opacity-40 hover:bg-primary/80 transition-colors"
             >
               Post
             </button>
@@ -1095,19 +1094,19 @@ function CommentSidebar({
   const resolved = comments.filter((c) => c.resolved);
 
   return (
-    <aside className="w-72 border-l border-border bg-bg flex flex-col shrink-0 overflow-hidden">
-      <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-text-primary">
+    <aside className="w-72 border-l border-base-300 bg-base-100 flex flex-col shrink-0 overflow-hidden">
+      <div className="px-4 py-3 border-b border-base-300 flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-base-content">
           Comments
           {unresolved.length > 0 && (
-            <span className="ml-2 text-xs font-normal text-text-tertiary">
+            <span className="ml-2 text-xs font-normal text-base-content/40">
               {unresolved.length} open
             </span>
           )}
         </h2>
         <button
           onClick={onClose}
-          className="p-1 rounded hover:bg-bg-secondary text-text-tertiary hover:text-text-primary transition-colors"
+          className="p-1 rounded hover:bg-base-200 text-base-content/40 hover:text-base-content transition-colors"
         >
           <Icon name="x" size={14} />
         </button>
@@ -1116,9 +1115,9 @@ function CommentSidebar({
       <div className="flex-1 overflow-y-auto">
         {comments.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-12 text-center px-6">
-            <Icon name="message-circle" size={32} className="text-text-tertiary mb-3" />
-            <p className="text-sm font-medium text-text-secondary">No comments yet</p>
-            <p className="text-xs text-text-tertiary mt-1">
+            <Icon name="message-circle" size={32} className="text-base-content/40 mb-3" />
+            <p className="text-sm font-medium text-base-content/60">No comments yet</p>
+            <p className="text-xs text-base-content/40 mt-1">
               Enable comment mode and click anywhere on the prototype to add one.
             </p>
           </div>
@@ -1146,7 +1145,7 @@ function CommentSidebar({
             {resolved.length > 0 && (
               <>
                 <div className="px-2 pt-3 pb-1">
-                  <p className="text-xs font-medium text-text-tertiary uppercase tracking-wide">
+                  <p className="text-xs font-medium text-base-content/40 uppercase tracking-wide">
                     Resolved
                   </p>
                 </div>
@@ -1187,7 +1186,7 @@ function SidebarItem({ comment, index, isActive, onActivate, onResolve, onDelete
     <div
       className={cn(
         "rounded-md p-2.5 cursor-pointer transition-colors",
-        isActive ? "bg-accent-light" : "hover:bg-bg-secondary",
+        isActive ? "bg-primary/15" : "hover:bg-base-200",
         comment.resolved && "opacity-50"
       )}
       onClick={onActivate}
@@ -1196,17 +1195,17 @@ function SidebarItem({ comment, index, isActive, onActivate, onResolve, onDelete
         <span
           className={cn(
             "shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white mt-0.5",
-            comment.resolved ? "bg-bg-tertiary text-text-tertiary" : "bg-accent"
+            comment.resolved ? "bg-base-300 text-base-content/40" : "bg-primary"
           )}
         >
           {index}
         </span>
         <div className="flex-1 min-w-0">
           {comment.author?.name && (
-            <p className="text-xs font-medium text-text-secondary mb-0.5">{comment.author.name}</p>
+            <p className="text-xs font-medium text-base-content/60 mb-0.5">{comment.author.name}</p>
           )}
-          <p className="text-sm text-text-primary leading-snug line-clamp-3">{comment.text}</p>
-          <p className="text-xs text-text-tertiary mt-1">
+          <p className="text-sm text-base-content leading-snug line-clamp-3">{comment.text}</p>
+          <p className="text-xs text-base-content/40 mt-1">
             {new Date(comment.createdAt).toLocaleDateString(undefined, {
               month: "short",
               day: "numeric",
@@ -1216,7 +1215,7 @@ function SidebarItem({ comment, index, isActive, onActivate, onResolve, onDelete
             })}
           </p>
           {comment.replies && comment.replies.length > 0 && (
-            <p className="text-xs text-text-tertiary mt-0.5 flex items-center gap-1">
+            <p className="text-xs text-base-content/40 mt-0.5 flex items-center gap-1">
               <Icon name="message-circle" size={10} />
               {comment.replies.length} {comment.replies.length === 1 ? "reply" : "replies"}
             </p>
@@ -1229,7 +1228,7 @@ function SidebarItem({ comment, index, isActive, onActivate, onResolve, onDelete
           className={cn(
             "flex items-center gap-1 text-xs font-medium px-2 h-5 rounded transition-colors",
             comment.resolved
-              ? "text-text-secondary hover:bg-bg-tertiary"
+              ? "text-base-content/60 hover:bg-base-300"
               : "text-green-600 hover:bg-green-50"
           )}
         >
@@ -1238,7 +1237,7 @@ function SidebarItem({ comment, index, isActive, onActivate, onResolve, onDelete
         </button>
         <button
           onClick={onDelete}
-          className="flex items-center gap-1 text-xs font-medium px-2 h-5 rounded text-text-tertiary hover:text-red-600 hover:bg-red-50 transition-colors ml-auto"
+          className="flex items-center gap-1 text-xs font-medium px-2 h-5 rounded text-base-content/40 hover:text-red-600 hover:bg-red-50 transition-colors ml-auto"
         >
           <Icon name="trash" size={10} />
           Delete
