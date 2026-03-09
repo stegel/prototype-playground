@@ -3,18 +3,13 @@ import GitHub from "next-auth/providers/github";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { getRedis } from "./redis";
+import { emailToFolderSlug } from "./utils";
 
 interface CredentialsUser {
   id: string;
   name: string;
   email: string;
   hashedPassword: string;
-}
-
-interface UserMapping {
-  designerFolder: string;
-  email: string;
-  name: string;
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -59,15 +54,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.sub = user.id;
       }
 
-      // Look up designer folder from Redis on every token refresh
-      if (token.sub) {
-        const redis = getRedis();
-        if (redis) {
-          const mapping = await redis.get<UserMapping>(
-            `user:mapping:${token.sub}`
-          );
-          token.designerFolder = mapping?.designerFolder ?? null;
-        }
+      // Derive designer folder from email address
+      if (token.email) {
+        token.designerFolder = emailToFolderSlug(token.email as string);
+      } else {
+        token.designerFolder = null;
       }
 
       return token;

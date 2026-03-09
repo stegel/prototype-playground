@@ -1,7 +1,6 @@
 "use client";
 
 import { useSession, signIn, signOut } from "next-auth/react";
-import Link from "next/link";
 
 export function UserMenu() {
   const { data: session, status } = useSession();
@@ -52,11 +51,6 @@ export function UserMenu() {
             <span className="text-xs opacity-60">{session.user.email}</span>
           )}
         </li>
-        {!session.user.designerFolder && (
-          <li>
-            <Link href="/auth/claim-folder">Claim a folder</Link>
-          </li>
-        )}
         {session.user.designerFolder && (
           <li className="disabled">
             <span className="text-xs opacity-60">
