@@ -1,0 +1,28 @@
+name: Mark Feature Done
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  update-notion:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract Notion page ID from PR body
+        id: extract
+        run: |
+          NOTION_ID=$(echo "${{ github.event.pull_request.body }}" | grep "Notion feature:" | awk '{print $NF}')
+          echo "notion_id=$NOTION_ID" >> $GITHUB_OUTPUT
+
+      - name: Update Notion → Done
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+        run: |
+          curl -s -X PATCH \
+            "https://api.notion.com/v1/pages/${{ steps.extract.outputs.notion_id }}" \
+            -H "Authorization: Bearer $NOTION_API_KEY" \
+            -H "Notion-Version: 2022-06-28" \
+            -H "Content-Type: application/json" \
+            -d '{"properties": {"Status": {"select": {"name": "Done"}}}}'
