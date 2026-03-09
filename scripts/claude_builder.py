@@ -6,7 +6,8 @@ from pathlib import Path
 
 EXCLUDED_DIRS = {
     ".git", "node_modules", "__pycache__", ".next", "dist", "build",
-    ".venv", "venv", "coverage", ".turbo", ".cache"
+    ".venv", "venv", "coverage", ".turbo", ".cache", "prototypes-repo",
+    "public", ".claude"
 }
 EXCLUDED_EXTENSIONS = {
     ".lock", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico",
@@ -34,6 +35,13 @@ def build_repo_context(root: Path) -> str:
     return "\n\n".join(parts)
 
 
+def load_claude_md(root: Path) -> str:
+    claude_md = root / "CLAUDE.md"
+    if claude_md.exists():
+        return claude_md.read_text(encoding="utf-8")
+    return ""
+
+
 def apply_changes(changes: list[dict], root: Path):
     for change in changes:
         file_path = root / change["path"]
@@ -53,13 +61,22 @@ def main():
     args = parser.parse_args()
 
     root = Path(".")
+    claude_md = load_claude_md(root)
     repo_context = build_repo_context(root)
+
+    if claude_md:
+        print("✓ Loaded CLAUDE.md project brief")
     print(f"✓ Built context: {len(repo_context):,} chars")
 
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
-    prompt = f"""You are an expert software engineer. You will be given a codebase and a feature request.
-Your job is to implement the feature by modifying or creating files.
+    prompt = f"""You are an expert software engineer working on the following project:
+
+{claude_md}
+
+---
+
+Your job is to implement the feature request below by modifying or creating files.
 
 Respond ONLY with valid JSON. No explanation, no markdown fences. The JSON must have this shape:
 {{
@@ -77,6 +94,7 @@ Rules:
 - Always include complete file contents — never partial diffs or snippets
 - Match the existing code style exactly
 - Only modify files that are necessary for the feature
+- Follow all rules listed in the project brief above
 - Do not modify workflow files or scripts/claude_builder.py
 
 ---
@@ -92,7 +110,7 @@ CODEBASE:
     print(f"✓ Sending to Claude (prompt: {len(prompt):,} chars)...")
     message = client.messages.create(
         model="claude-opus-4-5",
-        max_tokens=16000,
+        max_tokens=32000,
         messages=[{"role": "user", "content": prompt}],
     )
 
