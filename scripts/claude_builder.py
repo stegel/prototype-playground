@@ -23,6 +23,7 @@ def build_repo_context(root: Path) -> str:
 def apply_changes(changes: list[dict], root: Path):
     for change in changes:
         file_path = root / change["path"]
+        print(f"  → {change['action']}: {change['path']}")
         if change["action"] in ("create", "modify"):
             file_path.parent.mkdir(parents=True, exist_ok=True)
             file_path.write_text(change["content"], encoding="utf-8")
@@ -36,7 +37,9 @@ def main():
     args = parser.parse_args()
 
     root = Path(".")
+    print(f"Building repo context from {root.absolute()}...")
     repo_context = build_repo_context(root)
+    print(f"Repo context built: {len(repo_context)} chars across files")
 
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
@@ -67,6 +70,7 @@ CODEBASE:
 {repo_context}
 """
 
+    print(f"Sending request to Claude (prompt length: {len(prompt)} chars)...")
     message = client.messages.create(
         model="claude-opus-4-5",
         max_tokens=8192,
@@ -74,8 +78,24 @@ CODEBASE:
     )
 
     raw = message.content[0].text.strip()
-    result = json.loads(raw)
+    print(f"Claude raw response (first 500 chars): {raw[:500]}")
+    print(f"Stop reason: {message.stop_reason}")
 
+    # Strip markdown fences if Claude added them despite instructions
+    if raw.startswith("```"):
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+        raw = raw.strip()
+
+    try:
+        result = json.loads(raw)
+    except json.JSONDecodeError as e:
+        print(f"JSON parse failed: {e}")
+        print(f"Full raw response: {raw}")
+        raise
+
+    print(f"Files to modify: {[f['path'] for f in result['files']]}")
     apply_changes(result["files"], root)
     print(f"✓ {result['summary']}")
     print(f"✓ Modified {len(result['files'])} file(s)")
