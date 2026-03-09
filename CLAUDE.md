@@ -1,9 +1,8 @@
-# Prototype Playground
+# Prototype Playground — Shell App
 
 ## Project Overview
 
-A Next.js 16 prototype playground built with Tailwind CSS v4 and TypeScript.
-Multiple designers share this repo, each with their own namespace folder for prototypes.
+The shell application for Prototype Playground. This repo provides the homepage, routing, authentication, theming, and layout chrome that wraps prototypes. Prototype content lives in a separate `prototypes-repo/` directory (git submodule or symlink) — this app discovers and renders those prototypes but does not contain them.
 
 ## Tech Stack
 
@@ -12,6 +11,7 @@ Multiple designers share this repo, each with their own namespace folder for pro
 - Tailwind CSS v4 (CSS-first `@theme` config)
 - React 19
 - DaisyUI 5 (component classes via `@plugin "daisyui"`)
+- NextAuth v5 (GitHub + Credentials providers, Upstash Redis)
 - Utilities: clsx + tailwind-merge (via `cn()` helper)
 
 ## Project Structure
@@ -19,120 +19,67 @@ Multiple designers share this repo, each with their own namespace folder for pro
 ```
 src/
   app/
-    layout.tsx                  # Root layout with Geist fonts
-    page.tsx                    # Homepage - auto-discovers prototypes
-    globals.css                 # Tailwind v4 + DaisyUI plugin config
-    prototypes/[designer]/[prototype]/page.tsx  # Dynamic prototype routes
+    layout.tsx                  # Root layout (Geist fonts, AuthSessionProvider, ThemeProvider)
+    page.tsx                    # Homepage — auto-discovers prototypes from prototypes-repo
+    globals.css                 # Tailwind v4 + DaisyUI plugin config (all 32 themes)
+    prototypes/[designer]/[prototype]/page.tsx  # Dynamic route — loads prototype via dynamic import
+    api/
+      auth/[...nextauth]/       # NextAuth route handlers
+      auth/register/            # Credentials registration
+      comments/                 # Prototype comments API
+      create-prototype/         # Prototype creation API
+      designers/                # Designer listing API
+      prototypes/[designer]/    # Prototype data API
+      user/claim-folder/        # Designer folder claiming
+    auth/
+      signin/                   # Sign-in page
+      claim-folder/             # Claim a designer folder
   components/
-    ui/                         # Shared UI: Button, Card, Input, Badge
-      index.ts                  # Barrel export
-    icons/                      # SVG icon components (Icon component with name prop)
-    layout/                     # PrototypeFrame (wraps prototypes with nav bar)
-    home/                       # Homepage components (PrototypeCard, DesignerSection, ExternalLinkCard)
+    auth/                       # AuthSessionProvider
+    home/                       # Homepage: SearchHome, RecentFeed, PrototypeCard, DesignerSection, ExternalLinkCard
+    icons/                      # Icon component (SVG icons by name)
+    layout/                     # Shell chrome: PrototypeFrame, ThemeProvider, ThemeSelector, DarkModeToggle, UserMenu, CommentLayer
+    ui/                         # Legacy shared UI: Button, Card, Input, Badge (barrel export via index.ts)
   lib/
-    types.ts                    # PrototypeMeta, Prototype, ExternalPrototype, DesignerGroup
+    auth.ts                     # NextAuth config (GitHub + Credentials, JWT, Redis user mapping)
+    discovery.ts                # Filesystem scanner — reads from prototypes-repo/src/prototypes/
+    redis.ts                    # Upstash Redis client
+    types.ts                    # PrototypeMeta, Prototype, ExternalPrototype, DesignerGroup, etc.
     utils.ts                    # cn(), formatDate(), displayName()
-    discovery.ts                # Filesystem scanner for auto-discovering prototypes
-  prototypes/                   # All prototype content lives here
-    _template/                  # Template for new prototypes
-    _external.json              # External prototype links (Figma, V0, etc.)
-    <designer-name>/            # Designer namespace (freeform name, kebab-case)
-      <prototype-slug>/         # Prototype folder (kebab-case)
-        meta.json               # Required metadata
-        page.tsx                # Main component (default export)
-        components/             # Optional local components
+  prototypes/                   # Local prototypes (legacy, may still exist)
 ```
 
-## Creating a Prototype
+## How the Shell Works
 
-Each prototype needs two files minimum:
+### Prototype Discovery
 
-### meta.json
+`discovery.ts` scans `prototypes-repo/src/prototypes/` at build/request time:
+- Reads `meta.json` from each `<designer>/<prototype>/` folder
+- Also reads `_external.json` for external links (Figma, V0, etc.)
+- Groups prototypes by designer and sorts by date
+- `getRecentPrototypes()` provides the recent activity feed
 
-```json
-{
-  "title": "Human Readable Title",
-  "description": "Brief description of what this prototype demonstrates.",
-  "author": "designer-name",
-  "date": "YYYY-MM-DD",
-  "tags": ["tag1", "tag2"],
-  "status": "in-progress"
-}
-```
+### Dynamic Routing
 
-Status values: `"in-progress"`, `"complete"`, `"archived"`
+`/prototypes/[designer]/[prototype]` uses `next/dynamic` to import prototype components from the `@prototypes/` path alias (mapped to `prototypes-repo/src/prototypes/`). Each prototype is wrapped in `PrototypeFrame` which provides the nav bar, back button, and comment layer.
 
-### page.tsx
+### Authentication
 
-```tsx
-"use client";
+NextAuth v5 with JWT sessions, backed by Upstash Redis:
+- GitHub OAuth and email/password credentials
+- Users can claim a designer folder via `/auth/claim-folder`
+- Session includes `designerFolder` for ownership checks
 
-import { Button, Card, Input, Badge } from "@/components/ui";
-import { cn } from "@/lib/utils";
+### Theming
 
-export default function MyPrototype() {
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-base-200 p-8">
-      {/* Prototype content */}
-    </div>
-  );
-}
-```
-
-### Naming Convention
-
-- Designer folder: freeform kebab-case (e.g., `aj-siegel`, `jane-doe`)
-- Prototype folder: kebab-case from title (e.g., "Onboarding Flow" → `onboarding-flow`)
-- If a feature request doesn't specify a designer, use `claude-bot` as the designer name
-
-## DaisyUI Components
-
-DaisyUI 5 is available globally via `@plugin "daisyui"` in globals.css. Use DaisyUI component classes directly in JSX — no imports needed. Choose components contextually based on what you're building. See https://daisyui.com/components/ for the full reference.
-
-Examples: `btn`, `card`, `input`, `modal`, `drawer`, `tabs`, `navbar`, `alert`, `badge`, `table`, `toggle`, `select`, `textarea`, `collapse`, `stat`, `hero`, `tooltip`, `dropdown`, `swap`.
-
-Use DaisyUI modifier classes for variants (e.g., `btn-primary`, `btn-ghost`, `card-compact`, `input-bordered`).
-
-## DaisyUI Themes
-
-DaisyUI 5 includes 32 built-in themes. The application supports theme switching via the `ThemeSelector` component in the header. Available themes:
-
-- **Light themes:** light, cupcake, bumblebee, emerald, corporate, retro, valentine, garden, lofi, pastel, fantasy, wireframe, cmyk, autumn, acid, lemonade, winter
-- **Dark themes:** dark, synthwave, cyberpunk, halloween, forest, aqua, black, luxury, dracula, business, night, coffee, dim, nord, sunset
-
-To use a specific theme in your prototype, the theme is controlled at the app level via `data-theme` attribute on the `<html>` element. Users can switch themes using the dropdown in the header.
-
-## Legacy Shared UI Components
-
-Import from `@/components/ui` (these predate DaisyUI — prefer DaisyUI classes for new prototypes):
-
-- **Button** — variants: `primary` (default), `secondary`, `ghost`, `destructive`; sizes: `sm`, `md`, `lg`
-- **Card** — container with border, rounded corners, and shadow
-- **Input** — styled text input with focus ring
-- **Badge** — variants: `default`, `subtle`, `status`
-
-All accept standard HTML attributes plus `className` for overrides.
-
-## DaisyUI Color Classes
-
-Use DaisyUI semantic color classes instead of raw colors. These adapt automatically to all 32 themes:
-
-- Backgrounds: `bg-base-100`, `bg-base-200`, `bg-base-300`
-- Text: `text-base-content`, `text-base-content/60`, `text-base-content/40`
-- Borders: `border-base-300`, `border-base-content/25`
-- Primary: `text-primary`, `bg-primary`, `text-primary-content` (text on primary bg)
-- Status: `bg-info`, `bg-success`, `bg-warning`, `bg-error` (with `/15` for subtle backgrounds)
-- Shadows: `shadow-sm`, `shadow-md`
+DaisyUI 5 with 32 themes enabled in `globals.css`. Theme switching via `ThemeProvider` + `ThemeSelector` in the header. Themes are applied via `data-theme` attribute on `<html>`.
 
 ## Rules
 
-1. Always use `"use client"` for prototypes with interactivity (useState, useEffect, onClick, etc.)
-2. Always default export the main prototype component from page.tsx
-3. Never modify the discovery system, routing, or layout components
-4. Never install new packages without explicit approval
-5. Always run `npm run build` after implementation to verify no errors
-6. Follow existing patterns — reference `src/prototypes/example-designer/counter-demo/`
-7. Use `cn()` from `@/lib/utils` for className merging
-8. Keep prototypes self-contained — each should work independently
-9. Use semantic HTML and ensure basic accessibility
-10. Prototypes should work on both desktop and mobile viewports
+1. Never modify the discovery system, routing, or layout components without understanding the impact on prototype rendering
+2. Never install new packages without explicit approval
+3. Always run `npm run build` after changes to verify no errors
+4. Use `cn()` from `@/lib/utils` for className merging
+5. Use DaisyUI semantic color classes (`bg-base-100`, `text-base-content`, `bg-primary`, etc.) — never raw hex colors
+6. Shell components must work across all 32 DaisyUI themes
+7. Keep the shell lightweight — it should load fast and stay out of the prototype's way
