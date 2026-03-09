@@ -30,6 +30,11 @@ function key(designer: string, slug: string) {
 }
 
 export async function GET(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json([]);
+  }
+
   const redis = getRedis();
   if (!redis) {
     return NextResponse.json([]);
@@ -48,6 +53,11 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  }
+
   const redis = getRedis();
   if (!redis) {
     return NextResponse.json({ error: "Storage not configured" }, { status: 503 });
@@ -64,10 +74,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "designer, slug, and comment required" }, { status: 400 });
   }
 
-  const session = await auth();
-  const author: CommentAuthor | undefined = session?.user
-    ? { name: session.user.name ?? null, image: session.user.image ?? null }
-    : undefined;
+  const author: CommentAuthor = {
+    name: session.user.name ?? null,
+    image: session.user.image ?? null,
+  };
 
   const k = key(designer, slug);
   const comments = (await redis.get<Comment[]>(k)) ?? [];
@@ -91,6 +101,11 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  }
+
   const redis = getRedis();
   if (!redis) {
     return NextResponse.json({ error: "Storage not configured" }, { status: 503 });
@@ -113,6 +128,11 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  }
+
   const redis = getRedis();
   if (!redis) {
     return NextResponse.json({ error: "Storage not configured" }, { status: 503 });

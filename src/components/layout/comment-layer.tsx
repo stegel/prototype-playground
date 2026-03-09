@@ -37,6 +37,7 @@ interface CommentLayerProps {
 
 export function CommentLayer({ meta, designer, slug, children }: CommentLayerProps) {
   const { data: session } = useSession();
+  const isLoggedIn = !!session?.user;
   const [commentMode, setCommentMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -51,11 +52,12 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
   const editModalRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
+    if (!isLoggedIn) return;
     fetch(`/api/comments?designer=${encodeURIComponent(designer)}&slug=${encodeURIComponent(slug)}`)
       .then((r) => r.json())
       .then((data) => { if (Array.isArray(data)) setComments(data); })
       .catch(() => {});
-  }, [designer, slug]);
+  }, [designer, slug, isLoggedIn]);
 
   const copyUrl = () => {
     navigator.clipboard.writeText(window.location.href).then(() => {
@@ -65,6 +67,7 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
   };
 
   const toggleCommentMode = () => {
+    if (!isLoggedIn) return;
     setCommentMode((m) => {
       if (m) {
         setPendingPin(null);
@@ -76,7 +79,7 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
   };
 
   const handleContentClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!commentMode) return;
+    if (!commentMode || !isLoggedIn) return;
     if (pendingPin) return;
     // Ignore clicks on pins or popovers
     if ((e.target as HTMLElement).closest("[data-comment-ui]")) return;
@@ -89,7 +92,7 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
   };
 
   const submitComment = () => {
-    if (!pendingPin || !pendingText.trim()) return;
+    if (!pendingPin || !pendingText.trim() || !isLoggedIn) return;
     const comment: Comment = {
       id: crypto.randomUUID(),
       x: pendingPin.x,
@@ -117,6 +120,7 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
   };
 
   const resolveComment = (id: string) => {
+    if (!isLoggedIn) return;
     setComments((prev) => prev.map((c) => (c.id === id ? { ...c, resolved: !c.resolved } : c)));
     if (activeCommentId === id) setActiveCommentId(null);
     fetch("/api/comments", {
@@ -127,6 +131,7 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
   };
 
   const deleteComment = (id: string) => {
+    if (!isLoggedIn) return;
     setComments((prev) => prev.filter((c) => c.id !== id));
     if (activeCommentId === id) setActiveCommentId(null);
     fetch("/api/comments", {
@@ -137,6 +142,7 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
   };
 
   const replyToComment = (commentId: string, text: string) => {
+    if (!isLoggedIn) return;
     const reply: Reply = {
       id: crypto.randomUUID(),
       text,
@@ -158,6 +164,7 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
   };
 
   const deleteReply = (commentId: string, replyId: string) => {
+    if (!isLoggedIn) return;
     setComments((prev) =>
       prev.map((c) =>
         c.id === commentId
@@ -257,44 +264,48 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
             <span>{copied ? "Copied!" : "Copy URL"}</span>
           </button>
           <div className="h-4 w-px bg-border mx-1" />
-          {/* Comment mode toggle */}
-          <button
-            onClick={toggleCommentMode}
-            title={commentMode ? "Exit comment mode (Esc)" : "Add comment"}
-            className={cn(
-              "flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium transition-colors",
-              commentMode
-                ? "bg-primary text-primary-content"
-                : "bg-base-200 text-base-content/60 border border-base-300 hover:bg-base-300 hover:text-base-content"
-            )}
-          >
-            <Icon name="message-circle" size={14} />
-            <span>{commentMode ? "Commenting" : "Comment"}</span>
-          </button>
-          {/* Sidebar toggle */}
-          <button
-            onClick={() => setSidebarOpen((s) => !s)}
-            title="View all comments"
-            className={cn(
-              "relative flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium transition-colors",
-              sidebarOpen
-                ? "bg-primary text-primary-content"
-                : "bg-base-200 text-base-content/60 border border-base-300 hover:bg-base-300 hover:text-base-content"
-            )}
-          >
-            <Icon name="panel-right" size={14} />
-            <span>Comments</span>
-            {unresolvedCount > 0 && (
-              <span
-                className={cn(
-                  "ml-0.5 min-w-[18px] h-[18px] rounded-full text-[10px] font-bold flex items-center justify-center px-1",
-                  sidebarOpen ? "bg-white/30 text-white" : "bg-primary text-primary-content"
-                )}
-              >
-                {unresolvedCount}
-              </span>
-            )}
-          </button>
+          {/* Comment mode toggle - only show for logged in users */}
+          {isLoggedIn && (
+            <button
+              onClick={toggleCommentMode}
+              title={commentMode ? "Exit comment mode (Esc)" : "Add comment"}
+              className={cn(
+                "flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium transition-colors",
+                commentMode
+                  ? "bg-primary text-primary-content"
+                  : "bg-base-200 text-base-content/60 border border-base-300 hover:bg-base-300 hover:text-base-content"
+              )}
+            >
+              <Icon name="message-circle" size={14} />
+              <span>{commentMode ? "Commenting" : "Comment"}</span>
+            </button>
+          )}
+          {/* Sidebar toggle - only show for logged in users */}
+          {isLoggedIn && (
+            <button
+              onClick={() => setSidebarOpen((s) => !s)}
+              title="View all comments"
+              className={cn(
+                "relative flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium transition-colors",
+                sidebarOpen
+                  ? "bg-primary text-primary-content"
+                  : "bg-base-200 text-base-content/60 border border-base-300 hover:bg-base-300 hover:text-base-content"
+              )}
+            >
+              <Icon name="panel-right" size={14} />
+              <span>Comments</span>
+              {unresolvedCount > 0 && (
+                <span
+                  className={cn(
+                    "ml-0.5 min-w-[18px] h-[18px] rounded-full text-[10px] font-bold flex items-center justify-center px-1",
+                    sidebarOpen ? "bg-white/30 text-white" : "bg-primary text-primary-content"
+                  )}
+                >
+                  {unresolvedCount}
+                </span>
+              )}
+            </button>
+          )}
           <div className="h-4 w-px bg-border mx-1" />
           <DarkModeToggle />
           <UserMenu />
@@ -306,13 +317,13 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
         {/* Content with overlay */}
         <div
           ref={contentRef}
-          className={cn("flex-1 relative overflow-auto bg-base-100", commentMode && "cursor-crosshair")}
+          className={cn("flex-1 relative overflow-auto bg-base-100", commentMode && isLoggedIn && "cursor-crosshair")}
           onClick={handleContentClick}
         >
           {children}
 
-          {/* Existing pins */}
-          {comments.map((comment, index) => (
+          {/* Existing pins - only show for logged in users */}
+          {isLoggedIn && comments.map((comment, index) => (
             <CommentPin
               key={comment.id}
               comment={comment}
@@ -329,7 +340,7 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
           ))}
 
           {/* Pending pin */}
-          {pendingPin && (
+          {pendingPin && isLoggedIn && (
             <PendingPin
               x={pendingPin.x}
               y={pendingPin.y}
@@ -341,15 +352,15 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
           )}
 
           {/* Hint bar */}
-          {commentMode && !pendingPin && (
+          {commentMode && !pendingPin && isLoggedIn && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs px-3 py-1.5 rounded-full pointer-events-none select-none">
               Click anywhere to add a comment · Esc to exit
             </div>
           )}
         </div>
 
-        {/* Sidebar */}
-        {sidebarOpen && (
+        {/* Sidebar - only show for logged in users */}
+        {sidebarOpen && isLoggedIn && (
           <CommentSidebar
             comments={comments}
             activeId={activeCommentId}
