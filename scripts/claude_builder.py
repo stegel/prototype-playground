@@ -149,6 +149,7 @@ def apply_changes(changes: list[dict], root: Path):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--description", required=True)
+    parser.add_argument("--notes", default="")
     parser.add_argument("--notion-id", required=True)
     args = parser.parse_args()
 
@@ -190,6 +191,7 @@ Rules:
 
 ---
 FEATURE REQUEST: {args.description}
+DETAILS: {args.notes}
 NOTION ID: {args.notion_id}
 
 ---

@@ -29,6 +29,7 @@ jobs:
         run: |
           python scripts/claude_builder.py \
             --description "${{ github.event.client_payload.feature_description }}" \
+            --notes "${{ github.event.client_payload.feature_notes }}" \
             --notion-id "${{ github.event.client_payload.notion_page_id }}"
 
       - name: Create Pull Request
