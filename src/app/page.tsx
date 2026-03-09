@@ -23,6 +23,9 @@ export default async function HomePage() {
             Interactive prototypes from the team. Browse, explore, and get
             inspired.
           </p>
+          <p className="text-accent text-base mt-2 font-medium">
+            Hello world
+          </p>
         </div>
         <div className="flex items-center gap-3 shrink-0 mt-1">
           {process.env.NODE_ENV === "development" && (
