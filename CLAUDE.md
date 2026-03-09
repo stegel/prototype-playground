@@ -93,6 +93,15 @@ Examples: `btn`, `card`, `input`, `modal`, `drawer`, `tabs`, `navbar`, `alert`, 
 
 Use DaisyUI modifier classes for variants (e.g., `btn-primary`, `btn-ghost`, `card-compact`, `input-bordered`).
 
+## DaisyUI Themes
+
+DaisyUI 5 includes 32 built-in themes. The application supports theme switching via the `ThemeSelector` component in the header. Available themes:
+
+- **Light themes:** light, cupcake, bumblebee, emerald, corporate, retro, valentine, garden, lofi, pastel, fantasy, wireframe, cmyk, autumn, acid, lemonade, winter
+- **Dark themes:** dark, synthwave, cyberpunk, halloween, forest, aqua, black, luxury, dracula, business, night, coffee, dim, nord, sunset
+
+To use a specific theme in your prototype, the theme is controlled at the app level via `data-theme` attribute on the `<html>` element. Users can switch themes using the dropdown in the header.
+
 ## Legacy Shared UI Components
 
 Import from `@/components/ui` (these predate DaisyUI — prefer DaisyUI classes for new prototypes):

@@ -1,14 +1,20 @@
 "use client";
 
 import { useTheme } from "./theme-provider";
+import { ThemeSelector } from "./theme-selector";
 import { Icon } from "@/components/icons";
 
 interface DarkModeToggleProps {
   className?: string;
+  showSelector?: boolean;
 }
 
-export function DarkModeToggle({ className }: DarkModeToggleProps) {
+export function DarkModeToggle({ className, showSelector = true }: DarkModeToggleProps) {
   const { theme, toggle } = useTheme();
+
+  if (showSelector) {
+    return <ThemeSelector className={className} />;
+  }
 
   return (
     <button
