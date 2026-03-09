@@ -27,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-bg text-text-primary`}
+        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-base-100 text-base-content`}
       >
         <AuthSessionProvider>
           <ThemeProvider>{children}</ThemeProvider>

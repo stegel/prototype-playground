@@ -44,7 +44,7 @@ export default async function PrototypePage({ params }: Props) {
     {
       loading: () => (
         <div className="flex items-center justify-center h-64">
-          <p className="text-text-secondary">Loading prototype...</p>
+          <p className="text-base-content/60">Loading prototype...</p>
         </div>
       ),
     }

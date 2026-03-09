@@ -21,7 +21,7 @@ src/
   app/
     layout.tsx                  # Root layout with Geist fonts
     page.tsx                    # Homepage - auto-discovers prototypes
-    globals.css                 # Tailwind v4 theme tokens
+    globals.css                 # Tailwind v4 + DaisyUI plugin config
     prototypes/[designer]/[prototype]/page.tsx  # Dynamic prototype routes
   components/
     ui/                         # Shared UI: Button, Card, Input, Badge
@@ -72,7 +72,7 @@ import { cn } from "@/lib/utils";
 
 export default function MyPrototype() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-bg-secondary p-8">
+    <div className="flex items-center justify-center min-h-screen bg-base-200 p-8">
       {/* Prototype content */}
     </div>
   );
@@ -93,6 +93,15 @@ Examples: `btn`, `card`, `input`, `modal`, `drawer`, `tabs`, `navbar`, `alert`, 
 
 Use DaisyUI modifier classes for variants (e.g., `btn-primary`, `btn-ghost`, `card-compact`, `input-bordered`).
 
+## DaisyUI Themes
+
+DaisyUI 5 includes 32 built-in themes. The application supports theme switching via the `ThemeSelector` component in the header. Available themes:
+
+- **Light themes:** light, cupcake, bumblebee, emerald, corporate, retro, valentine, garden, lofi, pastel, fantasy, wireframe, cmyk, autumn, acid, lemonade, winter
+- **Dark themes:** dark, synthwave, cyberpunk, halloween, forest, aqua, black, luxury, dracula, business, night, coffee, dim, nord, sunset
+
+To use a specific theme in your prototype, the theme is controlled at the app level via `data-theme` attribute on the `<html>` element. Users can switch themes using the dropdown in the header.
+
 ## Legacy Shared UI Components
 
 Import from `@/components/ui` (these predate DaisyUI — prefer DaisyUI classes for new prototypes):
@@ -104,17 +113,16 @@ Import from `@/components/ui` (these predate DaisyUI — prefer DaisyUI classes 
 
 All accept standard HTML attributes plus `className` for overrides.
 
-## Tailwind CSS v4 Theme Tokens
+## DaisyUI Color Classes
 
-Always use theme tokens instead of raw colors:
+Use DaisyUI semantic color classes instead of raw colors. These adapt automatically to all 32 themes:
 
-- Backgrounds: `bg-bg`, `bg-bg-secondary`, `bg-bg-tertiary`
-- Text: `text-text-primary`, `text-text-secondary`, `text-text-tertiary`
-- Borders: `border-border`, `border-border-hover`
-- Accent: `text-accent`, `bg-accent`, `bg-accent-hover`, `bg-accent-light`
-- Tags: `bg-tag-blue`, `bg-tag-green`, `bg-tag-purple`, `bg-tag-orange`, `bg-tag-pink`
-- Shadows: `shadow-card`, `shadow-card-hover`
-- Fonts: `font-sans`, `font-mono`
+- Backgrounds: `bg-base-100`, `bg-base-200`, `bg-base-300`
+- Text: `text-base-content`, `text-base-content/60`, `text-base-content/40`
+- Borders: `border-base-300`, `border-base-content/25`
+- Primary: `text-primary`, `bg-primary`, `text-primary-content` (text on primary bg)
+- Status: `bg-info`, `bg-success`, `bg-warning`, `bg-error` (with `/15` for subtle backgrounds)
+- Shadows: `shadow-sm`, `shadow-md`
 
 ## Rules
 

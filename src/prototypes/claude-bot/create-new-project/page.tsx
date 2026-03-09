@@ -56,10 +56,10 @@ function TagInput({
               key={tag}
               type="button"
               onClick={() => removeTag(tag)}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-tag-blue text-text-primary text-xs font-medium hover:opacity-75 transition-opacity"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-info/15 text-base-content text-xs font-medium hover:opacity-75 transition-opacity"
             >
               {tag}
-              <span className="text-text-secondary">×</span>
+              <span className="text-base-content/60">×</span>
             </button>
           ))}
         </div>
@@ -164,9 +164,9 @@ export default function CreateNewProject() {
 
   if (formStatus === "success" && result) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-bg-secondary p-8">
+      <div className="flex items-center justify-center min-h-screen bg-base-200 p-8">
         <Card className="max-w-md w-full p-8 text-center space-y-6">
-          <div className="w-12 h-12 rounded-full bg-accent-light flex items-center justify-center mx-auto">
+          <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center mx-auto">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path
                 d="M5 13l4 4L19 7"
@@ -174,21 +174,21 @@ export default function CreateNewProject() {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="text-accent"
+                className="text-primary"
               />
             </svg>
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-text-primary mb-1">
+            <h2 className="text-xl font-semibold text-base-content mb-1">
               Project created!
             </h2>
-            <p className="text-text-secondary text-sm">
+            <p className="text-base-content/60 text-sm">
               Your prototype has been scaffolded and is ready to edit.
             </p>
           </div>
-          <div className="bg-bg-tertiary rounded-lg p-4 text-left space-y-1">
-            <p className="text-xs text-text-tertiary font-mono">Path</p>
-            <p className="text-sm text-text-primary font-mono break-all">
+          <div className="bg-base-300 rounded-lg p-4 text-left space-y-1">
+            <p className="text-xs text-base-content/40 font-mono">Path</p>
+            <p className="text-sm text-base-content font-mono break-all">
               src/prototypes/{result.designer}/{result.slug}/
             </p>
           </div>
@@ -211,13 +211,13 @@ export default function CreateNewProject() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-bg-secondary p-8">
+    <div className="flex items-center justify-center min-h-screen bg-base-200 p-8">
       <Card className="max-w-lg w-full p-8">
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-text-primary mb-1">
+          <h2 className="text-xl font-semibold text-base-content mb-1">
             Create New Project
           </h2>
-          <p className="text-text-secondary text-sm">
+          <p className="text-base-content/60 text-sm">
             Scaffold a new prototype in your designer folder.
           </p>
         </div>
@@ -225,16 +225,16 @@ export default function CreateNewProject() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Designer */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-text-primary">
-              Designer <span className="text-accent">*</span>
+            <label className="text-sm font-medium text-base-content">
+              Designer <span className="text-primary">*</span>
             </label>
             <select
               value={designer}
               onChange={(e) => setDesigner(e.target.value)}
               required
               className={cn(
-                "w-full px-3 py-2 rounded-md border border-border bg-bg text-text-primary text-sm",
-                "focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent",
+                "w-full px-3 py-2 rounded-md border border-base-300 bg-base-100 text-base-content text-sm",
+                "focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent",
                 "appearance-none"
               )}
             >
@@ -260,8 +260,8 @@ export default function CreateNewProject() {
 
           {/* Title */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-text-primary">
-              Title <span className="text-accent">*</span>
+            <label className="text-sm font-medium text-base-content">
+              Title <span className="text-primary">*</span>
             </label>
             <Input
               value={title}
@@ -270,7 +270,7 @@ export default function CreateNewProject() {
               required
             />
             {previewPath && (
-              <p className="text-xs text-text-tertiary font-mono">
+              <p className="text-xs text-base-content/40 font-mono">
                 {previewPath}
               </p>
             )}
@@ -278,7 +278,7 @@ export default function CreateNewProject() {
 
           {/* Description */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-text-primary">
+            <label className="text-sm font-medium text-base-content">
               Description
             </label>
             <textarea
@@ -287,16 +287,16 @@ export default function CreateNewProject() {
               placeholder="Brief description of what this prototype demonstrates."
               rows={3}
               className={cn(
-                "w-full px-3 py-2 rounded-md border border-border bg-bg text-text-primary text-sm",
-                "focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent",
-                "resize-none placeholder:text-text-tertiary"
+                "w-full px-3 py-2 rounded-md border border-base-300 bg-base-100 text-base-content text-sm",
+                "focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent",
+                "resize-none placeholder:text-base-content/40"
               )}
             />
           </div>
 
           {/* Tags */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-text-primary">
+            <label className="text-sm font-medium text-base-content">
               Tags
             </label>
             <TagInput tags={tags} onChange={setTags} />
@@ -304,7 +304,7 @@ export default function CreateNewProject() {
 
           {/* Status */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-text-primary">
+            <label className="text-sm font-medium text-base-content">
               Status
             </label>
             <div className="flex gap-2">
@@ -316,8 +316,8 @@ export default function CreateNewProject() {
                   className={cn(
                     "px-3 py-1.5 rounded-md text-sm border transition-colors",
                     status === s
-                      ? "border-accent bg-accent-light text-accent font-medium"
-                      : "border-border text-text-secondary hover:border-border-hover"
+                      ? "border-primary bg-primary/15 text-primary font-medium"
+                      : "border-base-300 text-base-content/60 hover:border-base-content/25"
                   )}
                 >
                   {s}
@@ -328,7 +328,7 @@ export default function CreateNewProject() {
 
           {/* Error */}
           {formStatus === "error" && errorMsg && (
-            <div className="px-4 py-3 rounded-md bg-bg-tertiary border border-border text-sm text-text-secondary">
+            <div className="px-4 py-3 rounded-md bg-base-300 border border-base-300 text-sm text-base-content/60">
               {errorMsg}
             </div>
           )}

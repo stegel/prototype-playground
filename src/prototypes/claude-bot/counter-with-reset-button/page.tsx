@@ -8,16 +8,16 @@ export default function CounterWithResetButton() {
   const [count, setCount] = useState(0);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-bg-secondary p-8">
+    <div className="flex items-center justify-center min-h-screen bg-base-200 p-8">
       <Card className="flex flex-col items-center gap-8 p-10 w-full max-w-sm">
-        <h1 className="text-xl font-semibold text-text-primary">Counter</h1>
+        <h1 className="text-xl font-semibold text-base-content">Counter</h1>
 
         <div
           className={cn(
             "text-7xl font-mono font-bold tabular-nums transition-colors",
-            count > 0 && "text-accent",
+            count > 0 && "text-primary",
             count < 0 && "text-red-500",
-            count === 0 && "text-text-primary"
+            count === 0 && "text-base-content"
           )}
         >
           {count}

@@ -32,9 +32,9 @@ export function ExternalLinkCard({ prototype }: ExternalLinkCardProps) {
       rel="noopener noreferrer"
       className="group block"
     >
-      <Card className="p-5 transition-shadow hover:shadow-card-hover border-dashed">
+      <Card className="p-5 transition-shadow hover:shadow-md border-dashed">
         <div className="flex items-start justify-between gap-3 mb-3">
-          <h3 className="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">
+          <h3 className="text-sm font-semibold text-base-content group-hover:text-primary transition-colors">
             {prototype.title}
           </h3>
           <div className="flex items-center gap-2 shrink-0">
@@ -48,11 +48,11 @@ export function ExternalLinkCard({ prototype }: ExternalLinkCardProps) {
             <Icon
               name="external-link"
               size={14}
-              className="text-text-tertiary group-hover:text-accent transition-colors"
+              className="text-base-content/40 group-hover:text-primary transition-colors"
             />
           </div>
         </div>
-        <p className="text-sm text-text-secondary line-clamp-2 mb-4">
+        <p className="text-sm text-base-content/60 line-clamp-2 mb-4">
           {prototype.description}
         </p>
         <div className="flex items-center justify-between">
@@ -63,7 +63,7 @@ export function ExternalLinkCard({ prototype }: ExternalLinkCardProps) {
               </Badge>
             ))}
           </div>
-          <span className="text-xs text-text-tertiary flex items-center gap-1">
+          <span className="text-xs text-base-content/40 flex items-center gap-1">
             <Icon name="calendar" size={12} />
             {formatDate(prototype.date)}
           </span>

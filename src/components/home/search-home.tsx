@@ -98,7 +98,7 @@ export function SearchHome({ designerGroups, currentDesigner }: SearchHomeProps)
       <div className="flex items-center gap-3 mb-8">
         <div className="relative flex-1 max-w-sm">
           <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 pointer-events-none"
             width="14"
             height="14"
             viewBox="0 0 16 16"
@@ -115,15 +115,15 @@ export function SearchHome({ designerGroups, currentDesigner }: SearchHomeProps)
             className="pl-8"
           />
         </div>
-        <div className="flex items-center gap-1 bg-bg-secondary border border-border rounded-md p-1">
+        <div className="flex items-center gap-1 bg-base-200 border border-base-300 rounded-md p-1">
           {tabs.map((tab) => (
             <button
               key={tab.value}
               onClick={() => setMode(tab.value)}
               className={`px-3 py-1 text-sm rounded transition-colors ${
                 mode === tab.value
-                  ? "bg-bg text-text-primary font-medium shadow-card"
-                  : "text-text-secondary hover:text-text-primary"
+                  ? "bg-base-100 text-base-content font-medium shadow-sm"
+                  : "text-base-content/60 hover:text-base-content"
               }`}
             >
               {tab.label}
@@ -143,7 +143,7 @@ export function SearchHome({ designerGroups, currentDesigner }: SearchHomeProps)
           ))}
         </div>
       ) : (
-        <div className="text-center py-20 text-text-tertiary">
+        <div className="text-center py-20 text-base-content/40">
           <p className="text-lg mb-1">No results for &ldquo;{query}&rdquo;</p>
           <p className="text-sm">Try a different search or filter.</p>
         </div>

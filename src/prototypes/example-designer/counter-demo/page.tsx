@@ -7,15 +7,15 @@ export default function CounterDemo() {
   const [count, setCount] = useState(0);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-bg-secondary p-8">
+    <div className="flex items-center justify-center min-h-screen bg-base-200 p-8">
       <Card className="max-w-sm w-full p-8 text-center">
-        <h2 className="text-xl font-semibold text-text-primary mb-2">
+        <h2 className="text-xl font-semibold text-base-content mb-2">
           Counter
         </h2>
-        <p className="text-text-secondary text-sm mb-8">
+        <p className="text-base-content/60 text-sm mb-8">
           A simple interactive demo using shared components.
         </p>
-        <div className="text-6xl font-bold text-accent mb-8 tabular-nums">
+        <div className="text-6xl font-bold text-primary mb-8 tabular-nums">
           {count}
         </div>
         <div className="flex gap-3 justify-center">
@@ -31,7 +31,7 @@ export default function CounterDemo() {
         </div>
         <button
           onClick={() => setCount(0)}
-          className="mt-4 text-sm text-text-tertiary hover:text-text-secondary transition-colors"
+          className="mt-4 text-sm text-base-content/40 hover:text-base-content/60 transition-colors"
         >
           Reset
         </button>

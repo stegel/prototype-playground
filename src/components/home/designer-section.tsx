@@ -13,11 +13,11 @@ export function DesignerSection({ group, isCurrentUser }: DesignerSectionProps) 
     <section
       className={
         isCurrentUser
-          ? "bg-accent-light/30 -mx-4 px-4 py-4 rounded-xl border border-accent/20"
+          ? "bg-primary/5 -mx-4 px-4 py-4 rounded-xl border border-primary/20"
           : undefined
       }
     >
-      <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+      <h2 className="text-lg font-semibold text-base-content mb-4 flex items-center gap-2">
         {displayName(group.designer)}
         {isCurrentUser && (
           <span className="badge badge-sm badge-primary">You</span>
