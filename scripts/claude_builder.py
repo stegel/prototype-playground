@@ -108,20 +108,24 @@ CODEBASE:
 """
 
     print(f"✓ Sending to Claude (prompt: {len(prompt):,} chars)...")
-    message = client.messages.create(
+
+    raw = ""
+    with client.messages.stream(
         model="claude-opus-4-5",
         max_tokens=32000,
         messages=[{"role": "user", "content": prompt}],
-    )
+    ) as stream:
+        for text in stream.text_stream:
+            raw += text
+        final_message = stream.get_final_message()
 
-    if message.stop_reason == "max_tokens":
+    if final_message.stop_reason == "max_tokens":
         raise RuntimeError(
             "Claude's response was truncated (max_tokens reached). "
             "Try breaking the feature into smaller tasks."
         )
 
-    raw = message.content[0].text.strip()
-    print(f"✓ Claude responded (stop_reason: {message.stop_reason})")
+    print(f"✓ Claude responded (stop_reason: {final_message.stop_reason})")
 
     if raw.startswith("```"):
         raw = raw.split("```")[1]
