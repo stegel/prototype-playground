@@ -19,7 +19,18 @@ export default async function HomePage() {
           <h1 className="text-3xl font-bold text-base-content mb-2">
             Prototype Playground
           </h1>
-          <p className="text-base-content/60 text-lg">
+          <h3 className="text-base-content/60 text-base">
+            For more information on Design @ ServiceNow, visit{" "}
+            <a
+              href="https://internal.horizon.servicenow.com"
+              className="text-primary hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Horizon
+            </a>
+          </h3>
+          <p className="text-base-content/60 text-lg mt-2">
             Interactive prototypes from the team. Browse, explore, and get
             inspired.
           </p>
