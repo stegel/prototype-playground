@@ -26,15 +26,7 @@ jobs:
       - name: Create feature branch
         run: |
           git checkout -b ${{ github.event.client_payload.branch_name }}
-      - name: Check API key is set
-        run: |
-            if [ -z "$ANTHROPIC_API_KEY" ]; then
-            echo "ERROR: ANTHROPIC_API_KEY is not set"
-            else
-            echo "API key is set, starts with: ${ANTHROPIC_API_KEY:0:15}"
-            fi
-        env:
-            ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          
       - name: Run Claude builder
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
