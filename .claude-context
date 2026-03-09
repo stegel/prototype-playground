@@ -1,0 +1,5 @@
+{
+  "priority_dirs": [".claude", ".github","src", "components", "pages", "app"],
+  "exclude_dirs": ["legacy", "archive", "fixtures", "mocks","prototype-repo","public"],
+  "notes": "This is a Next.js 16 app using TypeScript,DaisyUI, and Tailwind that is a shell for prototypes. It handles commenting, routing, and log in for the prototypes. Main entry is src/app/page.tsx. API routes are in src/app/api/. Shared components are in src/components/."
+}
