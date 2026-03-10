@@ -3,7 +3,9 @@
 import Link from "next/link";
 import type { RecentPrototype } from "@/lib/discovery";
 import type { DesignerGroup } from "@/lib/types";
-import { displayName } from "@/lib/utils";
+import { displayName, formatDate } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Icon } from "@/components/icons";
 
 function timeAgo(date: Date): string {
   const now = Date.now();
@@ -49,9 +51,9 @@ export function MobileHome({ recentPrototypes, designerGroups, currentDesigner }
         <h2 className="text-sm font-semibold text-base-content/60 uppercase tracking-wide mb-3">
           Recent Updates
         </h2>
-        <ul className="space-y-1">
+        <ul className="divide-y divide-base-300">
           {recentPrototypes.map((proto) => (
-            <li key={proto.path} className="flex items-center gap-2">
+            <li key={proto.path} className="flex items-center gap-2 py-3">
               <span className="text-base-content/40">•</span>
               <Link
                 href={proto.path}
@@ -65,7 +67,7 @@ export function MobileHome({ recentPrototypes, designerGroups, currentDesigner }
             </li>
           ))}
           {recentPrototypes.length === 0 && (
-            <li className="text-sm text-base-content/40">No recent updates.</li>
+            <li className="text-sm text-base-content/40 py-3">No recent updates.</li>
           )}
         </ul>
       </section>
@@ -78,78 +80,127 @@ export function MobileHome({ recentPrototypes, designerGroups, currentDesigner }
         <div className="space-y-6">
           {sortedGroups.map((group) => (
             <div key={group.designer}>
-              <h3 className="text-base font-semibold text-base-content mb-2 flex items-center gap-2">
+              <h3 className="text-base font-semibold text-base-content mb-3 flex items-center gap-2">
                 {displayName(group.designer)}
                 {group.designer === currentDesigner && (
                   <span className="badge badge-sm badge-primary">You</span>
                 )}
               </h3>
-              <ul className="space-y-1 pl-1">
+              <div className="space-y-3">
                 {group.prototypes.map((entry) => {
                   const title = entry.type === "local" ? entry.meta.title : entry.title;
                   const path = entry.type === "local" ? entry.path : entry.url;
                   const isExternal = entry.type === "external";
+                  const description = entry.type === "local" ? entry.meta.description : entry.description;
+                  const tags = entry.type === "local" ? entry.meta.tags : entry.tags;
+                  const status = entry.type === "local" ? entry.meta.status : undefined;
+                  const date = entry.type === "local" ? entry.meta.date : entry.date;
 
                   return (
-                    <li key={path}>
+                    <div
+                      key={path}
+                      className="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm"
+                    >
                       {isExternal ? (
                         <a
                           href={path}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 py-1.5 px-2 -mx-2 rounded-md hover:bg-base-200 transition-colors"
+                          className="block"
                         >
-                          <span className="text-sm text-base-content truncate flex-1">
-                            {title}
-                          </span>
-                          <span className="text-xs text-base-content/40 shrink-0">
-                            {entry.platform}
-                          </span>
-                          <svg
-                            className="w-3 h-3 text-base-content/40 shrink-0"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
-                            <polyline points="15 3 21 3 21 9" />
-                            <line x1="10" y1="14" x2="21" y2="3" />
-                          </svg>
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <h4 className="text-sm font-semibold text-base-content hover:text-primary transition-colors flex-1">
+                              {title}
+                            </h4>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <Badge variant="default" className="text-xs">
+                                {entry.platform}
+                              </Badge>
+                              <svg
+                                className="w-3.5 h-3.5 text-base-content/40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+                                <polyline points="15 3 21 3 21 9" />
+                                <line x1="10" y1="14" x2="21" y2="3" />
+                              </svg>
+                            </div>
+                          </div>
+                          {description && (
+                            <p className="text-xs text-base-content/60 line-clamp-2 mb-3">
+                              {description}
+                            </p>
+                          )}
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex flex-wrap gap-1">
+                              {tags?.slice(0, 3).map((tag) => (
+                                <Badge key={tag} variant="subtle" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                            <span className="text-xs text-base-content/40 flex items-center gap-1">
+                              <Icon name="calendar" size={10} />
+                              {formatDate(date)}
+                            </span>
+                          </div>
                         </a>
                       ) : (
-                        <Link
-                          href={path}
-                          className="flex items-center gap-2 py-1.5 px-2 -mx-2 rounded-md hover:bg-base-200 transition-colors"
-                        >
-                          <span className="text-sm text-base-content truncate flex-1">
-                            {title}
-                          </span>
-                          {entry.meta.status && (
-                            <span
-                              className={`text-xs shrink-0 ${
-                                entry.meta.status === "complete"
-                                  ? "text-success"
-                                  : entry.meta.status === "archived"
-                                  ? "text-base-content/40"
-                                  : "text-warning"
-                              }`}
-                            >
-                              {entry.meta.status === "complete"
-                                ? "✓"
-                                : entry.meta.status === "archived"
-                                ? "archived"
-                                : "WIP"}
-                            </span>
+                        <Link href={path} className="block">
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <h4 className="text-sm font-semibold text-base-content hover:text-primary transition-colors flex-1">
+                              {title}
+                            </h4>
+                            {status && (
+                              <Badge
+                                variant={status === "complete" ? "status" : "default"}
+                                className="text-xs shrink-0"
+                              >
+                                {status === "complete" ? (
+                                  <span className="flex items-center gap-1">
+                                    <Icon name="check" size={10} />
+                                    Done
+                                  </span>
+                                ) : status === "archived" ? (
+                                  "Archived"
+                                ) : (
+                                  <span className="flex items-center gap-1">
+                                    <Icon name="clock" size={10} />
+                                    WIP
+                                  </span>
+                                )}
+                              </Badge>
+                            )}
+                          </div>
+                          {description && (
+                            <p className="text-xs text-base-content/60 line-clamp-2 mb-3">
+                              {description}
+                            </p>
                           )}
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex flex-wrap gap-1">
+                              {tags?.slice(0, 3).map((tag) => (
+                                <Badge key={tag} variant="subtle" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                            <span className="text-xs text-base-content/40 flex items-center gap-1">
+                              <Icon name="calendar" size={10} />
+                              {formatDate(date)}
+                            </span>
+                          </div>
                         </Link>
                       )}
-                    </li>
+                    </div>
                   );
                 })}
-              </ul>
+              </div>
             </div>
           ))}
           {sortedGroups.length === 0 && (
