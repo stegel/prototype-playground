@@ -15,38 +15,47 @@ export default async function HomePage() {
 
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-      <header className="mb-8 sm:mb-10 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-base-content mb-2">
-            Prototype Playground
-          </h1>
-          <h3 className="text-base-content/60 text-sm sm:text-base">
-            For more information on Design @ ServiceNow, visit{" "}
-            <a
-              href="https://internal.horizon.servicenow.com"
-              className="text-primary hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Horizon
-            </a>
-          </h3>
-          <p className="text-base-content/60 text-base sm:text-lg mt-2">
-            Interactive prototypes from the team. Browse, explore, and get
-            inspired.
-          </p>
-        </div>
-        <div className="flex items-center gap-3 shrink-0">
-          {process.env.NODE_ENV === "development" && (
-            <Link
-              href="/prototypes/claude-bot/create-new-project"
-              className="hidden sm:flex items-center gap-1.5 px-4 h-9 rounded-md text-sm font-medium bg-primary text-primary-content hover:bg-primary/80 transition-colors"
-            >
-              + New project
-            </Link>
-          )}
+      <header className="mb-8 sm:mb-10 flex flex-col gap-4">
+        {/* Mobile toolbar - above h1 on mobile */}
+        <div className="flex sm:hidden items-center justify-end gap-3">
           <DarkModeToggle />
           <UserMenu />
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-base-content mb-2">
+              Prototype Playground
+            </h1>
+            <h3 className="text-base-content/60 text-sm sm:text-base">
+              For more information on Design @ ServiceNow, visit{" "}
+              <a
+                href="https://internal.horizon.servicenow.com"
+                className="text-primary hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Horizon
+              </a>
+            </h3>
+            <p className="text-base-content/60 text-base sm:text-lg mt-2">
+              Interactive prototypes from the team. Browse, explore, and get
+              inspired.
+            </p>
+          </div>
+          {/* Desktop toolbar - hidden on mobile */}
+          <div className="hidden sm:flex items-center gap-3 shrink-0">
+            {process.env.NODE_ENV === "development" && (
+              <Link
+                href="/prototypes/claude-bot/create-new-project"
+                className="flex items-center gap-1.5 px-4 h-9 rounded-md text-sm font-medium bg-primary text-primary-content hover:bg-primary/80 transition-colors"
+              >
+                + New project
+              </Link>
+            )}
+            <DarkModeToggle />
+            <UserMenu />
+          </div>
         </div>
       </header>
 
