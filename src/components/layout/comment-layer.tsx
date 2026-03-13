@@ -66,16 +66,21 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
     });
   };
 
-  const toggleCommentMode = () => {
+  const toggleComments = () => {
     if (!isLoggedIn) return;
-    setCommentMode((m) => {
-      if (m) {
-        setPendingPin(null);
-        setPendingText("");
-        setActiveCommentId(null);
-      }
-      return !m;
-    });
+    // If neither is open, open both
+    // If both are open, close both
+    // If only one is open, toggle to the other state
+    if (!commentMode && !sidebarOpen) {
+      setCommentMode(true);
+      setSidebarOpen(true);
+    } else {
+      setCommentMode(false);
+      setSidebarOpen(false);
+      setPendingPin(null);
+      setPendingText("");
+      setActiveCommentId(null);
+    }
   };
 
   const handleContentClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -205,6 +210,7 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
   };
 
   const unresolvedCount = comments.filter((c) => !c.resolved).length;
+  const commentsActive = commentMode || sidebarOpen;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -242,65 +248,43 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
           {/* Edit prototype */}
           <button
             onClick={openEditModal}
-            className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium bg-base-200 text-base-content/60 border border-base-300 hover:bg-base-300 hover:text-base-content transition-colors"
+            title="Edit prototype"
+            className="flex items-center justify-center w-8 h-8 rounded-md text-base-content/60 hover:text-base-content hover:bg-base-200 border border-base-300 transition-colors"
           >
             <Icon name="edit" size={14} />
-            <span>Edit prototype</span>
           </button>
           {/* New project */}
           <Link
             href="/prototypes/claude-bot/create-new-project"
-            className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium bg-base-200 text-base-content/60 border border-base-300 hover:bg-base-300 hover:text-base-content transition-colors"
+            title="New project"
+            className="flex items-center justify-center w-8 h-8 rounded-md text-base-content/60 hover:text-base-content hover:bg-base-200 border border-base-300 transition-colors"
           >
             <Icon name="plus" size={14} />
-            <span>New project</span>
           </Link>
           {/* Copy URL */}
           <button
             onClick={copyUrl}
-            className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium bg-base-200 text-base-content/60 border border-base-300 hover:bg-base-300 hover:text-base-content transition-colors"
+            title={copied ? "Copied!" : "Copy URL"}
+            className="flex items-center justify-center w-8 h-8 rounded-md text-base-content/60 hover:text-base-content hover:bg-base-200 border border-base-300 transition-colors"
           >
             <Icon name={copied ? "check" : "link"} size={14} />
-            <span>{copied ? "Copied!" : "Copy URL"}</span>
           </button>
           <div className="h-4 w-px bg-border mx-1" />
-          {/* Comment mode toggle - only show for logged in users */}
+          {/* Comments toggle - only show for logged in users */}
           {isLoggedIn && (
             <button
-              onClick={toggleCommentMode}
-              title={commentMode ? "Exit comment mode (Esc)" : "Add comment"}
+              onClick={toggleComments}
+              title={commentsActive ? "Close comments (Esc)" : "Open comments"}
               className={cn(
-                "flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium transition-colors",
-                commentMode
+                "relative flex items-center justify-center w-8 h-8 rounded-md transition-colors",
+                commentsActive
                   ? "bg-primary text-primary-content"
-                  : "bg-base-200 text-base-content/60 border border-base-300 hover:bg-base-300 hover:text-base-content"
+                  : "text-base-content/60 hover:text-base-content hover:bg-base-200 border border-base-300"
               )}
             >
               <Icon name="message-circle" size={14} />
-              <span>{commentMode ? "Commenting" : "Comment"}</span>
-            </button>
-          )}
-          {/* Sidebar toggle - only show for logged in users */}
-          {isLoggedIn && (
-            <button
-              onClick={() => setSidebarOpen((s) => !s)}
-              title="View all comments"
-              className={cn(
-                "relative flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium transition-colors",
-                sidebarOpen
-                  ? "bg-primary text-primary-content"
-                  : "bg-base-200 text-base-content/60 border border-base-300 hover:bg-base-300 hover:text-base-content"
-              )}
-            >
-              <Icon name="panel-right" size={14} />
-              <span>Comments</span>
-              {unresolvedCount > 0 && (
-                <span
-                  className={cn(
-                    "ml-0.5 min-w-[18px] h-[18px] rounded-full text-[10px] font-bold flex items-center justify-center px-1",
-                    sidebarOpen ? "bg-white/30 text-white" : "bg-primary text-primary-content"
-                  )}
-                >
+              {unresolvedCount > 0 && !commentsActive && (
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] rounded-full text-[10px] font-bold flex items-center justify-center px-1 bg-primary text-primary-content">
                   {unresolvedCount}
                 </span>
               )}
@@ -367,7 +351,10 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
             onActivate={setActiveCommentId}
             onResolve={resolveComment}
             onDelete={deleteComment}
-            onClose={() => setSidebarOpen(false)}
+            onClose={() => {
+              setSidebarOpen(false);
+              setCommentMode(false);
+            }}
           />
         )}
       </div>
@@ -1129,7 +1116,7 @@ function CommentSidebar({
             <Icon name="message-circle" size={32} className="text-base-content/40 mb-3" />
             <p className="text-sm font-medium text-base-content/60">No comments yet</p>
             <p className="text-xs text-base-content/40 mt-1">
-              Enable comment mode and click anywhere on the prototype to add one.
+              Click anywhere on the prototype to add one.
             </p>
           </div>
         ) : (
