@@ -4,6 +4,9 @@ on:
   repository_dispatch:
     types: [feature-requested]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  
 jobs:
   build-feature:
     runs-on: ubuntu-latest
