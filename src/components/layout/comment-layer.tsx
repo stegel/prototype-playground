@@ -46,8 +46,13 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
   const [pendingText, setPendingText] = useState("");
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editTags, setEditTags] = useState<string[]>([]);
+  const [editNewTag, setEditNewTag] = useState("");
   const [editSaving, setEditSaving] = useState(false);
+  const [editSaveMode, setEditSaveMode] = useState<"filesystem" | "github" | null>(null);
+  const [editShowSuccess, setEditShowSuccess] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const editModalRef = useRef<HTMLDialogElement>(null);
 
@@ -185,7 +190,12 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
   };
 
   const openEditModal = () => {
+    setEditTitle(meta?.title ?? "");
     setEditDescription(meta?.description ?? "");
+    setEditTags(meta?.tags ?? []);
+    setEditNewTag("");
+    setEditSaveMode(null);
+    setEditShowSuccess(false);
     setEditModalOpen(true);
     editModalRef.current?.showModal();
   };
@@ -195,15 +205,35 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
     editModalRef.current?.close();
   };
 
-  const saveDescription = async () => {
+  const handleAddEditTag = () => {
+    const trimmed = editNewTag.trim().toLowerCase();
+    if (trimmed && !editTags.includes(trimmed)) {
+      setEditTags([...editTags, trimmed]);
+    }
+    setEditNewTag("");
+  };
+
+  const handleEditTagKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddEditTag();
+    }
+  };
+
+  const saveEdit = async () => {
     setEditSaving(true);
     try {
-      await fetch(`/api/prototypes/${encodeURIComponent(designer)}/${encodeURIComponent(slug)}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description: editDescription }),
-      });
-      closeEditModal();
+      const res = await fetch(
+        `/api/prototypes/${encodeURIComponent(designer)}/${encodeURIComponent(slug)}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: editTitle, description: editDescription, tags: editTags }),
+        }
+      );
+      const data = await res.json() as { success: boolean; mode: "filesystem" | "github" };
+      setEditSaveMode(data.mode);
+      setEditShowSuccess(true);
     } finally {
       setEditSaving(false);
     }
@@ -361,34 +391,140 @@ export function CommentLayer({ meta, designer, slug, children }: CommentLayerPro
 
       {/* Edit prototype modal */}
       <dialog ref={editModalRef} className="modal" onClose={closeEditModal}>
-        <div className="modal-box bg-base-100 border border-base-300">
-          <h3 className="text-base font-semibold text-base-content mb-1">Edit prototype</h3>
-          <p className="text-xs text-base-content/40 mb-4">{meta?.title ?? slug}</p>
-          <label className="block text-sm font-medium text-base-content/60 mb-1.5">
-            Description
-          </label>
-          <textarea
-            className="textarea textarea-bordered w-full text-sm text-base-content bg-base-200 border-base-300 resize-none"
-            rows={4}
-            value={editDescription}
-            onChange={(e) => setEditDescription(e.target.value)}
-            placeholder="Describe what this prototype demonstrates…"
-          />
-          <div className="modal-action mt-4">
-            <button
-              onClick={closeEditModal}
-              className="btn btn-ghost btn-sm text-base-content/60"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={saveDescription}
-              disabled={editSaving}
-              className="btn btn-sm bg-primary text-primary-content hover:bg-primary/80 border-0"
-            >
-              {editSaving ? "Saving…" : "Save"}
-            </button>
-          </div>
+        <div className="modal-box bg-base-100 border border-base-300 max-w-lg">
+          {editShowSuccess ? (
+            <div className="text-center py-4">
+              <div className="text-4xl mb-4">✓</div>
+              <h3 className="text-lg font-semibold text-base-content mb-2">Changes Saved</h3>
+              <p className="text-base-content/60 text-sm mb-4">
+                Your metadata has been updated.
+              </p>
+              {editSaveMode === "github" ? (
+                <div className="alert alert-success text-left mb-4">
+                  <Icon name="code" size={18} />
+                  <div>
+                    <p className="font-medium">Committed to GitHub!</p>
+                    <p className="text-sm opacity-80">
+                      Run <code className="bg-base-300 px-1 rounded">git pull</code> locally to sync your changes.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="alert alert-info text-left mb-4">
+                  <Icon name="code" size={18} />
+                  <div>
+                    <p className="font-medium">Don&apos;t forget to commit!</p>
+                    <p className="text-sm opacity-80">
+                      Run <code className="bg-base-300 px-1 rounded">git commit</code> and{" "}
+                      <code className="bg-base-300 px-1 rounded">git push</code> to save your changes.
+                    </p>
+                  </div>
+                </div>
+              )}
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => { closeEditModal(); window.location.reload(); }}
+              >
+                Close
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-base font-semibold text-base-content">Edit prototype</h3>
+                <button
+                  className="btn btn-sm btn-ghost btn-circle"
+                  onClick={closeEditModal}
+                >
+                  <Icon name="x" size={18} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-base-content/60" htmlFor="edit-title">
+                    Title
+                  </label>
+                  <input
+                    id="edit-title"
+                    type="text"
+                    required
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    className="input input-bordered w-full"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-base-content/60" htmlFor="edit-description">
+                    Description
+                  </label>
+                  <textarea
+                    id="edit-description"
+                    rows={3}
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    placeholder="Describe what this prototype demonstrates…"
+                    className="textarea textarea-bordered w-full"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-base-content/60">
+                    Tags
+                  </label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {editTags.map((tag) => (
+                      <span key={tag} className="badge badge-neutral gap-1 pr-1">
+                        {tag}
+                        <button
+                          type="button"
+                          className="btn btn-ghost btn-xs btn-circle"
+                          onClick={() => setEditTags(editTags.filter((t) => t !== tag))}
+                        >
+                          <Icon name="x" size={12} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Add a tag…"
+                      value={editNewTag}
+                      onChange={(e) => setEditNewTag(e.target.value)}
+                      onKeyDown={handleEditTagKeyDown}
+                      className="input input-bordered input-sm flex-1"
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-ghost"
+                      onClick={handleAddEditTag}
+                    >
+                      <Icon name="plus" size={16} />
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-action mt-4">
+                <button
+                  onClick={closeEditModal}
+                  className="btn btn-ghost btn-sm text-base-content/60"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveEdit}
+                  disabled={editSaving}
+                  className="btn btn-sm bg-primary text-primary-content hover:bg-primary/80 border-0"
+                >
+                  {editSaving ? "Saving…" : "Save Changes"}
+                </button>
+              </div>
+            </>
+          )}
         </div>
         <form method="dialog" className="modal-backdrop">
           <button onClick={closeEditModal}>close</button>
